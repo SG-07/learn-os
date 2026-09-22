@@ -8,7 +8,7 @@ import aiRoutes from './routes/ai.js'
 import curriculumRoutes from './routes/curriculum.js'
 import progressRoutes from './routes/progress.js'
 import placementRoutes from './routes/placement.js'
-import errorHandler from './middleware/errorHandler.js'
+import errorHandler from './src/middleware/errorHandler.js'
 
 const app = express()
 const PORT = process.env.PORT || 5000
