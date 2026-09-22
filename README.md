@@ -46,11 +46,11 @@ Problems are generated dynamically by Claude per topic — you won't see the sam
 
 | Layer | Technology |
 |---|---|
-| Frontend | React, Next.js (App Router) |
-| Backend | Next.js Route Handlers |
+| Frontend | React |
+| Backend | Node.js | Express.js |
 | Database + Auth | Supabase (PostgreSQL) |
 | SQL Sandbox | Supabase read-only restricted role |
-| AI | Anthropic Claude API (streamed) |
+| AI | Google Studio API | Groq API| Meta Prompt Guard |
 | Visualizations | Mermaid.js |
 | Editor | CodeMirror |
 
