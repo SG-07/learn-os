@@ -21,3 +21,20 @@ rad.json
 *.flf
 #Test results file
 TestResults.xml
+
+
+# Environment files
+backend/.env
+frontend/.env
+
+frontend/.gitignore
+ 
+# Node modules
+backend/node_modules/
+frontend/node_modules/
+ 
+# Build files
+frontend/dist/
+ 
+# Logs
+*.log
