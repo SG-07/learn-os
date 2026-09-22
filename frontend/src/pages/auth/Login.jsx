@@ -1,5 +1,7 @@
+// frontend/src/pages/auth/Login.jsx
+
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { toast } from 'react-toastify';
 
 import { supabase } from '../../lib/supabaseClient';
@@ -33,7 +35,9 @@ function Login() {
 
       toast.success('Login successful');
 
-      navigate('/dashboard');
+      navigate({
+        to: '/dashboard',
+      });
     } catch (error) {
       console.error(error);
 
@@ -81,38 +85,31 @@ function Login() {
           Login to continue to SQL Coach.
         </p>
 
-        <form
-          onSubmit={handleLogin}
-          className="space-y-4"
-        >
+        <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium">
+            <label className="mb-1 block text-sm font-medium text-gray-900 dark:text-white">
               Email
             </label>
 
             <input
               type="email"
               value={email}
-              onChange={(event) =>
-                setEmail(event.target.value)
-              }
-              className="w-full rounded-lg border px-3 py-2 dark:border-gray-700 dark:bg-gray-800"
+              onChange={(event) => setEmail(event.target.value)}
+              className="w-full rounded-lg border px-3 py-2 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
               placeholder="you@example.com"
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium">
+            <label className="mb-1 block text-sm font-medium text-gray-900 dark:text-white">
               Password
             </label>
 
             <input
               type="password"
               value={password}
-              onChange={(event) =>
-                setPassword(event.target.value)
-              }
-              className="w-full rounded-lg border px-3 py-2 dark:border-gray-700 dark:bg-gray-800"
+              onChange={(event) => setPassword(event.target.value)}
+              className="w-full rounded-lg border px-3 py-2 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
               placeholder="••••••••"
             />
           </div>
@@ -128,9 +125,9 @@ function Login() {
 
         <div className="my-5 flex items-center gap-3">
           <div className="h-px flex-1 bg-gray-300" />
-          <span className="text-sm text-gray-500">
-            OR
-          </span>
+
+          <span className="text-sm text-gray-500">OR</span>
+
           <div className="h-px flex-1 bg-gray-300" />
         </div>
 
@@ -138,7 +135,7 @@ function Login() {
           type="button"
           onClick={handleGoogleLogin}
           disabled={loading}
-          className="w-full rounded-lg border px-4 py-2 disabled:opacity-50 dark:border-gray-700"
+          className="w-full rounded-lg border px-4 py-2 disabled:opacity-50 dark:border-gray-700 dark:text-white"
         >
           Continue with Google
         </button>

@@ -1,5 +1,6 @@
+// frontend/src/pages/auth/Signup.jsx
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { toast } from 'react-toastify';
 
 import { supabase } from '../../lib/supabaseClient';
@@ -7,6 +8,7 @@ import { supabase } from '../../lib/supabaseClient';
 function Signup() {
   const navigate = useNavigate();
 
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -15,7 +17,15 @@ function Signup() {
   async function handleSignup(event) {
     event.preventDefault();
 
-    if (!email || !password || !confirmPassword) {
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+
+    if (
+      !trimmedName ||
+      !trimmedEmail ||
+      !password ||
+      !confirmPassword
+    ) {
       toast.error('Please fill all fields');
       return;
     }
@@ -26,39 +36,45 @@ function Signup() {
     }
 
     if (password.length < 6) {
-      toast.error(
-        'Password must be at least 6 characters'
-      );
+      toast.error('Password must be at least 6 characters');
       return;
     }
 
     try {
       setLoading(true);
 
-      const { data, error } =
-        await supabase.auth.signUp({
-          email,
-          password,
-        });
+      const { data, error } = await supabase.auth.signUp({
+        email: trimmedEmail,
+        password,
+        options: {
+          data: {
+            name: trimmedName,
+          },
+        },
+      });
 
       if (error) {
         throw error;
       }
 
       /*
-       * Depending on your Supabase email confirmation
-       * settings, session may be null here.
+       * If email confirmation is enabled,
+       * data.session will normally be null.
        */
-
       if (data.session) {
         toast.success('Account created successfully');
-        navigate('/dashboard');
+
+        navigate({
+          to: '/dashboard',
+        });
       } else {
         toast.success(
           'Account created. Check your email to confirm your account.'
         );
 
-        navigate('/login');
+        navigate({
+          to: '/login',
+        });
       }
     } catch (error) {
       console.error(error);
@@ -75,13 +91,12 @@ function Signup() {
     try {
       setLoading(true);
 
-      const { error } =
-        await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: `${window.location.origin}/auth/callback`,
-          },
-        });
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
 
       if (error) {
         throw error;
@@ -100,7 +115,7 @@ function Signup() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4 dark:bg-gray-950">
       <div className="w-full max-w-md rounded-xl bg-white p-8 shadow dark:bg-gray-900">
-        <h1 className="mb-2 text-2xl font-bold">
+        <h1 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">
           Create account
         </h1>
 
@@ -108,44 +123,58 @@ function Signup() {
           Start learning SQL with SQL Coach.
         </p>
 
-        <form
-          onSubmit={handleSignup}
-          className="space-y-4"
-        >
+        <form onSubmit={handleSignup} className="space-y-4">
+          {/* Name */}
           <div>
-            <label className="mb-1 block text-sm font-medium">
+            <label className="mb-1 block text-sm font-medium text-gray-900 dark:text-white">
+              Full name
+            </label>
+
+            <input
+              type="text"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              className="w-full rounded-lg border px-3 py-2 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              placeholder="Your name"
+              autoComplete="name"
+            />
+          </div>
+
+          {/* Email */}
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-900 dark:text-white">
               Email
             </label>
 
             <input
               type="email"
               value={email}
-              onChange={(event) =>
-                setEmail(event.target.value)
-              }
-              className="w-full rounded-lg border px-3 py-2 dark:border-gray-700 dark:bg-gray-800"
+              onChange={(event) => setEmail(event.target.value)}
+              className="w-full rounded-lg border px-3 py-2 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
               placeholder="you@example.com"
+              autoComplete="email"
             />
           </div>
 
+          {/* Password */}
           <div>
-            <label className="mb-1 block text-sm font-medium">
+            <label className="mb-1 block text-sm font-medium text-gray-900 dark:text-white">
               Password
             </label>
 
             <input
               type="password"
               value={password}
-              onChange={(event) =>
-                setPassword(event.target.value)
-              }
-              className="w-full rounded-lg border px-3 py-2 dark:border-gray-700 dark:bg-gray-800"
+              onChange={(event) => setPassword(event.target.value)}
+              className="w-full rounded-lg border px-3 py-2 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
               placeholder="••••••••"
+              autoComplete="new-password"
             />
           </div>
 
+          {/* Confirm Password */}
           <div>
-            <label className="mb-1 block text-sm font-medium">
+            <label className="mb-1 block text-sm font-medium text-gray-900 dark:text-white">
               Confirm password
             </label>
 
@@ -155,8 +184,9 @@ function Signup() {
               onChange={(event) =>
                 setConfirmPassword(event.target.value)
               }
-              className="w-full rounded-lg border px-3 py-2 dark:border-gray-700 dark:bg-gray-800"
+              className="w-full rounded-lg border px-3 py-2 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
               placeholder="••••••••"
+              autoComplete="new-password"
             />
           </div>
 
@@ -183,7 +213,7 @@ function Signup() {
           type="button"
           onClick={handleGoogleSignup}
           disabled={loading}
-          className="w-full rounded-lg border px-4 py-2 disabled:opacity-50 dark:border-gray-700"
+          className="w-full rounded-lg border px-4 py-2 disabled:opacity-50 dark:border-gray-700 dark:text-white"
         >
           Continue with Google
         </button>
