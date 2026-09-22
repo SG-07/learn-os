@@ -9,6 +9,7 @@ import authRoutes from './src/routes/auth.js'
 // import progressRoutes from './src/routes/progress.js'
 // import placementRoutes from './src/routes/placement.js'
 import errorHandler from './src/middleware/errorHandler.js'
+import { getLandingPageHtml } from './view/landingPage.js'
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -23,12 +24,20 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
 })
 
+// Landing page — redirects to frontend
+app.get('/', (req, res) => {
+  res.send(getLandingPageHtml(process.env.FRONTEND_URL))
+})
+
+
 app.use('/api/auth', authRoutes)
 // app.use('/api/query', queryRoutes)
 // app.use('/api/ai', aiRoutes)
 // app.use('/api/curriculum', curriculumRoutes)
 // app.use('/api/progress', progressRoutes)
 // app.use('/api/placement', placementRoutes)
+
+
 
 app.use(errorHandler)
 
