@@ -3,6 +3,7 @@ import {
   Outlet,
   redirect,
 } from "@tanstack/react-router";
+
 import { supabase } from "../../lib/supabaseClient";
 
 export const Route = createFileRoute("/_authenticated")({
