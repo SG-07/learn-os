@@ -1,23 +1,23 @@
 // frontend/src/pages/auth/Login.jsx
 
-import { useState } from 'react';
-import { Link, useNavigate } from '@tanstack/react-router';
-import { toast } from 'react-toastify';
+import { useState } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { toast } from "react-toastify";
 
-import { supabase } from '../../lib/supabaseClient';
+import { supabase } from "../../lib/supabaseClient";
 
 function Login() {
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleLogin(event) {
     event.preventDefault();
 
     if (!email || !password) {
-      toast.error('Please enter email and password');
+      toast.error("Please enter email and password");
       return;
     }
 
@@ -33,17 +33,15 @@ function Login() {
         throw error;
       }
 
-      toast.success('Login successful');
+      toast.success("Login successful");
 
       navigate({
-        to: '/dashboard',
+        to: "/dashboard",
       });
     } catch (error) {
       console.error(error);
 
-      toast.error(
-        error.message || 'Unable to login'
-      );
+      toast.error(error.message || "Unable to login");
     } finally {
       setLoading(false);
     }
@@ -54,7 +52,7 @@ function Login() {
       setLoading(true);
 
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+        provider: "google",
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
         },
@@ -66,9 +64,30 @@ function Login() {
     } catch (error) {
       console.error(error);
 
-      toast.error(
-        error.message || 'Google login failed'
-      );
+      toast.error(error.message || "Google login failed");
+
+      setLoading(false);
+    }
+  }
+
+  async function handleGithubLogin() {
+    try {
+      setLoading(true);
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "github",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      console.error(error);
+
+      toast.error(error.message || "Github login failed");
 
       setLoading(false);
     }
@@ -81,13 +100,14 @@ function Login() {
           Login
         </h1>
 
-        <p className="mb-6 text-gray-600 dark:text-gray-400">
-          Login to continue to SQL Coach.
+        <p className="mb-10 text-gray-600 dark:text-gray-400">
+          Login to SQL Coach.
         </p>
 
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-5">
+          {/* Email */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-900 dark:text-white">
+            <label className="mb-1 block text-left text-sm font-medium text-gray-900 dark:text-white">
               Email
             </label>
 
@@ -95,13 +115,14 @@ function Login() {
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="w-full rounded-lg border px-3 py-2 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              className="w-full rounded-lg border px-3 py-2 text-left dark:border-gray-700 dark:bg-gray-800 dark:text-white"
               placeholder="you@example.com"
             />
           </div>
 
+          {/* Password */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-900 dark:text-white">
+            <label className="mb-1 block text-left text-sm font-medium text-gray-900 dark:text-white">
               Password
             </label>
 
@@ -109,7 +130,7 @@ function Login() {
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-lg border px-3 py-2 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              className="w-full rounded-lg border px-3 py-2 text-left dark:border-gray-700 dark:bg-gray-800 dark:text-white"
               placeholder="••••••••"
             />
           </div>
@@ -119,7 +140,7 @@ function Login() {
             disabled={loading}
             className="w-full rounded-lg bg-black px-4 py-2 text-white disabled:opacity-50 dark:bg-white dark:text-black"
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
@@ -131,21 +152,29 @@ function Login() {
           <div className="h-px flex-1 bg-gray-300" />
         </div>
 
-        <button
-          type="button"
-          onClick={handleGoogleLogin}
-          disabled={loading}
-          className="w-full rounded-lg border px-4 py-2 disabled:opacity-50 dark:border-gray-700 dark:text-white"
-        >
-          Continue with Google
-        </button>
+        <div className="space-y-3">
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className="w-full rounded-lg border px-4 py-2 disabled:opacity-50 dark:border-gray-700 dark:text-white"
+          >
+            Continue with Google
+          </button>
+
+          <button
+            type="button"
+            onClick={handleGithubLogin}
+            disabled={loading}
+            className="w-full rounded-lg border px-4 py-2 disabled:opacity-50 dark:border-gray-700 dark:text-white"
+          >
+            Continue with Github
+          </button>
+        </div>
 
         <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-          Don't have an account?{' '}
-          <Link
-            to="/signup"
-            className="font-medium text-blue-600"
-          >
+          Don't have an account?{" "}
+          <Link to="/signup" className="font-medium text-blue-600">
             Sign up
           </Link>
         </p>

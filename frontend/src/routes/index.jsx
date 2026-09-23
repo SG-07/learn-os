@@ -1,15 +1,20 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { supabase } from "../lib/supabaseClient";
 
-export const Route = createFileRoute('/')({
-  component: Home,
+export const Route = createFileRoute("/")({
+  beforeLoad: async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (session) {
+      throw redirect({
+        to: "/dashboard",
+      });
+    }
+
+    throw redirect({
+      to: "/login",
+    });
+  },
 });
-
-function Home() {
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <h1 className="text-3xl font-bold">
-        SQL Coach
-      </h1>
-    </div>
-  );
-}
