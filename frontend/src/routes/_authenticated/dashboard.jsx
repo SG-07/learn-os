@@ -1,8 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router';
-import Dashboard from '../../pages/Dashboard';
+// frontend/src/routes/_authenticated/dashboard.jsx
 
-export const Route = createFileRoute(
-  '/_authenticated/dashboard'
-)({
-  component: Dashboard,
+import { createFileRoute } from "@tanstack/react-router";
+import TopicList from "../../pages/LearningList";
+
+export const Route = createFileRoute("/_authenticated/dashboard")({
+  component: LearningList,
 });
