@@ -1,10 +1,6 @@
 // frontend/src/components/layout/Navbar.jsx
 
-import {
-  Link,
-  useNavigate,
-  useRouterState,
-} from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
@@ -46,9 +42,7 @@ function Navbar() {
     } catch (error) {
       console.error("Logout failed:", error);
 
-      toast.error(
-        error?.message || "Failed to logout. Please try again.",
-      );
+      toast.error(error?.message || "Failed to logout. Please try again.");
     } finally {
       setLoggingOut(false);
     }
@@ -73,9 +67,7 @@ function Navbar() {
             onClick={toggleTheme}
             className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
             title={
-              theme === "dark"
-                ? "Switch to light mode"
-                : "Switch to dark mode"
+              theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
             }
           >
             <span className="material-icons text-gray-700 dark:text-gray-200">
@@ -133,18 +125,15 @@ function Navbar() {
                     </p>
                   </div>
 
-                  {/* Profile - Disabled */}
-                  <button
-                    type="button"
-                    disabled
-                    className="flex w-full cursor-not-allowed items-center gap-3 px-4 py-2 text-left text-sm text-gray-400 dark:text-gray-600"
+                  {/* Profile */}
+                  <Link
+                    to="/profile"
+                    className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
                   >
-                    <span className="material-icons text-[20px]">
-                      person
-                    </span>
+                    <span className="material-icons text-[20px]">person</span>
 
                     <span>Profile</span>
-                  </button>
+                  </Link>
 
                   {/* Change Password - Disabled */}
                   <button
@@ -152,9 +141,7 @@ function Navbar() {
                     disabled
                     className="flex w-full cursor-not-allowed items-center gap-3 px-4 py-2 text-left text-sm text-gray-400 dark:text-gray-600"
                   >
-                    <span className="material-icons text-[20px]">
-                      lock
-                    </span>
+                    <span className="material-icons text-[20px]">lock</span>
 
                     <span>Change password</span>
                   </button>
@@ -168,13 +155,9 @@ function Navbar() {
                     disabled={loggingOut}
                     className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:bg-gray-800"
                   >
-                    <span className="material-icons text-[20px]">
-                      logout
-                    </span>
+                    <span className="material-icons text-[20px]">logout</span>
 
-                    <span>
-                      {loggingOut ? "Logging out..." : "Logout"}
-                    </span>
+                    <span>{loggingOut ? "Logging out..." : "Logout"}</span>
                   </button>
                 </div>
               </div>
