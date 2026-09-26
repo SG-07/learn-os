@@ -38,3 +38,6 @@ frontend/dist/
  
 # Logs
 *.log
+
+# TanStack Router generated file
+frontend/src/routeTree.gen.ts
