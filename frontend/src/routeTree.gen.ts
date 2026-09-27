@@ -14,7 +14,9 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedPasswordRouteImport } from './routes/_authenticated/password'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as AuthenticatedQuestionsQuestionIdRouteImport } from './routes/_authenticated/questions/$questionId'
 import { Route as AuthenticatedTopicsTopicIdRouteImport } from './routes/_authenticated/topics/$topicId'
@@ -43,9 +45,19 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPasswordRoute = AuthenticatedPasswordRouteImport.update({
+  id: '/password',
+  path: '/password',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
@@ -71,7 +83,9 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/password': typeof AuthenticatedPasswordRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/questions/$questionId': typeof AuthenticatedQuestionsQuestionIdRoute
   '/topics/$topicId': typeof AuthenticatedTopicsTopicIdRoute
@@ -81,7 +95,9 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/password': typeof AuthenticatedPasswordRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/questions/$questionId': typeof AuthenticatedQuestionsQuestionIdRoute
   '/topics/$topicId': typeof AuthenticatedTopicsTopicIdRoute
@@ -93,7 +109,9 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/password': typeof AuthenticatedPasswordRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/_authenticated/questions/$questionId': typeof AuthenticatedQuestionsQuestionIdRoute
   '/_authenticated/topics/$topicId': typeof AuthenticatedTopicsTopicIdRoute
@@ -105,7 +123,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/dashboard'
+    | '/password'
     | '/profile'
+    | '/settings'
     | '/auth/callback'
     | '/questions/$questionId'
     | '/topics/$topicId'
@@ -115,7 +135,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/dashboard'
+    | '/password'
     | '/profile'
+    | '/settings'
     | '/auth/callback'
     | '/questions/$questionId'
     | '/topics/$topicId'
@@ -126,7 +148,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/_authenticated/dashboard'
+    | '/_authenticated/password'
     | '/_authenticated/profile'
+    | '/_authenticated/settings'
     | '/auth/callback'
     | '/_authenticated/questions/$questionId'
     | '/_authenticated/topics/$topicId'
@@ -177,11 +201,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/password': {
+      id: '/_authenticated/password'
+      path: '/password'
+      fullPath: '/password'
+      preLoaderRoute: typeof AuthenticatedPasswordRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/auth/callback': {
@@ -210,14 +248,18 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedPasswordRoute: typeof AuthenticatedPasswordRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedQuestionsQuestionIdRoute: typeof AuthenticatedQuestionsQuestionIdRoute
   AuthenticatedTopicsTopicIdRoute: typeof AuthenticatedTopicsTopicIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedPasswordRoute: AuthenticatedPasswordRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedQuestionsQuestionIdRoute: AuthenticatedQuestionsQuestionIdRoute,
   AuthenticatedTopicsTopicIdRoute: AuthenticatedTopicsTopicIdRoute,
 }
