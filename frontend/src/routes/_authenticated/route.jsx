@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthenticatedLayout() {
   return (
-    <div className="min-h-screen">
+    <div className="h-full min-h-0 overflow-hidden">
       <Outlet />
     </div>
   );

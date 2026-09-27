@@ -16,6 +16,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
+import { Route as AuthenticatedQuestionsQuestionIdRouteImport } from './routes/_authenticated/questions/$questionId'
 import { Route as AuthenticatedTopicsTopicIdRouteImport } from './routes/_authenticated/topics/$topicId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -52,6 +53,12 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedQuestionsQuestionIdRoute =
+  AuthenticatedQuestionsQuestionIdRouteImport.update({
+    id: '/questions/$questionId',
+    path: '/questions/$questionId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedTopicsTopicIdRoute =
   AuthenticatedTopicsTopicIdRouteImport.update({
     id: '/topics/$topicId',
@@ -66,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/questions/$questionId': typeof AuthenticatedQuestionsQuestionIdRoute
   '/topics/$topicId': typeof AuthenticatedTopicsTopicIdRoute
 }
 export interface FileRoutesByTo {
@@ -75,6 +83,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/questions/$questionId': typeof AuthenticatedQuestionsQuestionIdRoute
   '/topics/$topicId': typeof AuthenticatedTopicsTopicIdRoute
 }
 export interface FileRoutesById {
@@ -86,6 +95,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/_authenticated/questions/$questionId': typeof AuthenticatedQuestionsQuestionIdRoute
   '/_authenticated/topics/$topicId': typeof AuthenticatedTopicsTopicIdRoute
 }
 export interface FileRouteTypes {
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/auth/callback'
+    | '/questions/$questionId'
     | '/topics/$topicId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/auth/callback'
+    | '/questions/$questionId'
     | '/topics/$topicId'
   id:
     | '__root__'
@@ -116,6 +128,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/profile'
     | '/auth/callback'
+    | '/_authenticated/questions/$questionId'
     | '/_authenticated/topics/$topicId'
   fileRoutesById: FileRoutesById
 }
@@ -178,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/questions/$questionId': {
+      id: '/_authenticated/questions/$questionId'
+      path: '/questions/$questionId'
+      fullPath: '/questions/$questionId'
+      preLoaderRoute: typeof AuthenticatedQuestionsQuestionIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/topics/$topicId': {
       id: '/_authenticated/topics/$topicId'
       path: '/topics/$topicId'
@@ -191,12 +211,14 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedQuestionsQuestionIdRoute: typeof AuthenticatedQuestionsQuestionIdRoute
   AuthenticatedTopicsTopicIdRoute: typeof AuthenticatedTopicsTopicIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedQuestionsQuestionIdRoute: AuthenticatedQuestionsQuestionIdRoute,
   AuthenticatedTopicsTopicIdRoute: AuthenticatedTopicsTopicIdRoute,
 }
 
