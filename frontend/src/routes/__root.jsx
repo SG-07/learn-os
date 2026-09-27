@@ -14,7 +14,7 @@ function RootLayout() {
     <div className="flex h-screen flex-col overflow-hidden">
       <Navbar />
 
-      <main className="min-h-0 flex-1 overflow-hidden">
+      <main className="min-h-0 flex-1 overflow-y-auto">
         <Outlet />
       </main>
     </div>

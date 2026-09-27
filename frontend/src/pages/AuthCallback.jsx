@@ -27,7 +27,7 @@ function AuthCallback() {
   }, [loading, isAuthenticated, navigate]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="flex min-h-full items-center justify-center">
       <p>Completing login...</p>
     </div>
   );
