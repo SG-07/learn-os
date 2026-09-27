@@ -19,6 +19,9 @@ function Navbar() {
   const { user, isAuthenticated, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
+  const userRole = (user?.user_metadata?.role || user?.app_metadata?.role || "").toLowerCase();
+  const isAdmin = userRole === "admin";
+
   const [loggingOut, setLoggingOut] = useState(false);
 
   const isLoginPage = pathname === "/login";
@@ -136,15 +139,27 @@ function Navbar() {
                     <span>Profile</span>
                   </Link>
 
-                  {/* Change Password */}
+                  {/* Reset Password */}
                   <Link
                     to="/password"
                     className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
                   >
                     <span className="material-icons text-[20px]">lock</span>
 
-                    <span>Change password</span>
+                    <span>Reset Password</span>
                   </Link>
+
+                  {/* Admin Users (only for admins) */}
+                  {isAdmin && (
+                    <Link
+                      to="/admin-users"
+                      className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
+                    >
+                      <span className="material-icons text-[20px]">admin_panel_settings</span>
+
+                      <span>Manage Users</span>
+                    </Link>
+                  )}
 
                   {/* Logout */}
                   <div className="my-1 border-t border-gray-200 dark:border-gray-700" />
