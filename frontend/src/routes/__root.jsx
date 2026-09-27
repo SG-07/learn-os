@@ -2,9 +2,11 @@
 
 import { createRootRoute, Outlet } from "@tanstack/react-router";
 import Navbar from "../components/layout/Navbar";
+import NotFoundPage from "../pages/NotFoundPage";
 
 export const Route = createRootRoute({
   component: RootLayout,
+  notFoundComponent: NotFoundPage,
 });
 
 function RootLayout() {

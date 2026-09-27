@@ -1,0 +1,8 @@
+// frontend/src/routes/_authenticated/settings.jsx
+
+import { createFileRoute } from "@tanstack/react-router";
+import Settings from "../../pages/Settings";
+
+export const Route = createFileRoute("/_authenticated/settings")({
+  component: Settings,
+});
