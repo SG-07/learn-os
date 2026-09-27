@@ -1,3 +1,4 @@
+// frontend/src/routes/_authenticated/route.jsx
 import {
   createFileRoute,
   Outlet,
