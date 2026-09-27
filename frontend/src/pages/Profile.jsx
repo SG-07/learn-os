@@ -2,6 +2,7 @@
 
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "../context/AuthContext";
+import Settings from "./Settings";
 
 function Profile() {
   const { user } = useAuth();

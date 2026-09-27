@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { logout } from "../../api/auth";
+import Settings from "../../pages/Settings";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -135,16 +136,15 @@ function Navbar() {
                     <span>Profile</span>
                   </Link>
 
-                  {/* Change Password - Disabled */}
-                  <button
-                    type="button"
-                    disabled
-                    className="flex w-full cursor-not-allowed items-center gap-3 px-4 py-2 text-left text-sm text-gray-400 dark:text-gray-600"
+                  {/* Change Password */}
+                  <Link
+                    to="/password"
+                    className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
                   >
                     <span className="material-icons text-[20px]">lock</span>
 
                     <span>Change password</span>
-                  </button>
+                  </Link>
 
                   {/* Logout */}
                   <div className="my-1 border-t border-gray-200 dark:border-gray-700" />
