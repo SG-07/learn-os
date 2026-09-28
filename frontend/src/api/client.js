@@ -16,20 +16,11 @@ export async function request(path, options = {}) {
       ? body
       : JSON.stringify(body);
 
-  const { data: sessionData } = await supabase.auth.getSession();
-  const accessToken = sessionData.session?.access_token;
-
-  const headers = {
-    'Content-Type': 'application/json',
-    ...(optionHeaders || {}),
-  };
-
-  if (accessToken) {
-    headers.Authorization = `Bearer ${accessToken}`;
-  }
-
   const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    },
     credentials: 'include',
     ...restOptions,
     ...(serializedBody !== undefined && { body: serializedBody }),
