@@ -1,5 +1,7 @@
 // frontend/src/api/client.js
 
+import { supabase } from '../lib/supabaseClient';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export async function request(path, options = {}) {
@@ -7,18 +9,27 @@ export async function request(path, options = {}) {
   // this themselves) or a plain object (groups.js's convention, which
   // assumes this function stringifies it). Handle both without
   // double-stringifying an already-stringified body.
-  const { body, ...restOptions } = options;
+  const { body, headers: optionHeaders, ...restOptions } = options;
 
   const serializedBody =
     body === undefined || body === null || typeof body === 'string'
       ? body
       : JSON.stringify(body);
 
+  const { data: sessionData } = await supabase.auth.getSession();
+  const accessToken = sessionData.session?.access_token;
+
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(optionHeaders || {}),
+  };
+
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    },
+    headers,
     credentials: 'include',
     ...restOptions,
     ...(serializedBody !== undefined && { body: serializedBody }),

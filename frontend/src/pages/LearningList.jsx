@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-router";
 
 import { getTopics } from "../api/topics";
-// import { getQuestions } from "../api/questions";
+import { getQuestionsByTopic } from "../api/questions";
 
 function LearningList() {
   const location = useLocation();
@@ -41,6 +41,10 @@ function LearningList() {
       } finally {
         setLoading(false);
       }
+    }
+
+    if (isTopicPage && !topicId) {
+      return;
     }
 
     fetchData();
