@@ -12,6 +12,18 @@ export async function listTopics() {
   return data ?? []
 }
 
+export async function getTopicById(topicId) {
+  const { data, error } = await supabase
+    .from('topics')
+    .select('id, title, tier')
+    .eq('id', topicId)
+    .maybeSingle()
+
+  if (error) throw error
+
+  return data
+}
+
 export async function listQuestionsByTopic(topicId) {
   const { data, error } = await supabase
     .from('problems')

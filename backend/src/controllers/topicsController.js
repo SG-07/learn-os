@@ -1,4 +1,8 @@
-import { listQuestionsByTopic, listTopics } from '../services/topicService.js'
+import {
+  getTopicById,
+  listQuestionsByTopic,
+  listTopics,
+} from '../services/topicService.js'
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -27,16 +31,13 @@ export const getQuestionsByTopic = async (req, res, next) => {
       return res.status(400).json({ error: 'Invalid topic id' })
     }
 
-    const topics = await listTopics()
-    const topic = topics.find(
-      (row) => row.id?.toLowerCase() === topicId.toLowerCase(),
-    )
+    const topic = await getTopicById(topicId)
 
     if (!topic) {
       return res.status(404).json({ error: 'Topic not found' })
     }
 
-    const problems = await listQuestionsByTopic(topic.id)
+    const problems = await listQuestionsByTopic(topicId)
 
     res.status(200).json({
       questions: problems.map((problem) => ({
