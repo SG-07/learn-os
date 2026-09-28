@@ -1,5 +1,7 @@
 // frontend/src/api/client.js
 
+import { supabase } from '../lib/supabaseClient';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export async function request(path, options = {}) {
@@ -14,9 +16,16 @@ export async function request(path, options = {}) {
       ? body
       : JSON.stringify(body);
 
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
     headers: {
       'Content-Type': 'application/json',
+      ...(session?.access_token && {
+        Authorization: `Bearer ${session.access_token}`,
+      }),
       ...(options.headers || {}),
     },
     credentials: 'include',
