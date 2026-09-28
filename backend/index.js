@@ -3,6 +3,7 @@ import express from 'express'
 import cors from 'cors'
 
 import authRoutes from './src/routes/auth.js'
+import topicsRouter from './src/routes/topics.js'
 // import queryRoutes from './src/routes/query.js'
 // import aiRoutes from './src/routes/ai.js'
 // import curriculumRoutes from './src/routes/curriculum.js'
@@ -31,6 +32,7 @@ app.get('/', (req, res) => {
 
 
 app.use('/api/auth', authRoutes)
+app.use('/api/topics', topicsRouter)
 // app.use('/api/query', queryRoutes)
 // app.use('/api/ai', aiRoutes)
 // app.use('/api/curriculum', curriculumRoutes)
