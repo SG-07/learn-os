@@ -13,12 +13,15 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin-users'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedPasswordRouteImport } from './routes/_authenticated/password'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedSqlAssistantRouteImport } from './routes/_authenticated/sql-assistant'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as AuthenticatedQuestionsQuestionIdRouteImport } from './routes/_authenticated/questions/$questionId'
+import { Route as AuthenticatedTopicsIndexRouteImport } from './routes/_authenticated/topics/index'
 import { Route as AuthenticatedTopicsTopicIdRouteImport } from './routes/_authenticated/topics/$topicId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -40,6 +43,11 @@ const SignupRoute = SignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
+  id: '/admin-users',
+  path: '/admin-users',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -60,6 +68,12 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSqlAssistantRoute =
+  AuthenticatedSqlAssistantRouteImport.update({
+    id: '/sql-assistant',
+    path: '/sql-assistant',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
@@ -69,6 +83,12 @@ const AuthenticatedQuestionsQuestionIdRoute =
   AuthenticatedQuestionsQuestionIdRouteImport.update({
     id: '/questions/$questionId',
     path: '/questions/$questionId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedTopicsIndexRoute =
+  AuthenticatedTopicsIndexRouteImport.update({
+    id: '/topics/',
+    path: '/topics/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedTopicsTopicIdRoute =
@@ -82,25 +102,31 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/admin-users': typeof AuthenticatedAdminUsersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/password': typeof AuthenticatedPasswordRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/sql-assistant': typeof AuthenticatedSqlAssistantRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/questions/$questionId': typeof AuthenticatedQuestionsQuestionIdRoute
   '/topics/$topicId': typeof AuthenticatedTopicsTopicIdRoute
+  '/topics/': typeof AuthenticatedTopicsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/admin-users': typeof AuthenticatedAdminUsersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/password': typeof AuthenticatedPasswordRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/sql-assistant': typeof AuthenticatedSqlAssistantRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/questions/$questionId': typeof AuthenticatedQuestionsQuestionIdRoute
   '/topics/$topicId': typeof AuthenticatedTopicsTopicIdRoute
+  '/topics': typeof AuthenticatedTopicsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -108,13 +134,16 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/_authenticated/admin-users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/password': typeof AuthenticatedPasswordRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/sql-assistant': typeof AuthenticatedSqlAssistantRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/_authenticated/questions/$questionId': typeof AuthenticatedQuestionsQuestionIdRoute
   '/_authenticated/topics/$topicId': typeof AuthenticatedTopicsTopicIdRoute
+  '/_authenticated/topics/': typeof AuthenticatedTopicsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -122,38 +151,47 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/signup'
+    | '/admin-users'
     | '/dashboard'
     | '/password'
     | '/profile'
     | '/settings'
+    | '/sql-assistant'
     | '/auth/callback'
     | '/questions/$questionId'
     | '/topics/$topicId'
+    | '/topics/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
     | '/signup'
+    | '/admin-users'
     | '/dashboard'
     | '/password'
     | '/profile'
     | '/settings'
+    | '/sql-assistant'
     | '/auth/callback'
     | '/questions/$questionId'
     | '/topics/$topicId'
+    | '/topics'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/login'
     | '/signup'
+    | '/_authenticated/admin-users'
     | '/_authenticated/dashboard'
     | '/_authenticated/password'
     | '/_authenticated/profile'
     | '/_authenticated/settings'
+    | '/_authenticated/sql-assistant'
     | '/auth/callback'
     | '/_authenticated/questions/$questionId'
     | '/_authenticated/topics/$topicId'
+    | '/_authenticated/topics/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -194,6 +232,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin-users': {
+      id: '/_authenticated/admin-users'
+      path: '/admin-users'
+      fullPath: '/admin-users'
+      preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -222,6 +267,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/sql-assistant': {
+      id: '/_authenticated/sql-assistant'
+      path: '/sql-assistant'
+      fullPath: '/sql-assistant'
+      preLoaderRoute: typeof AuthenticatedSqlAssistantRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/auth/callback': {
       id: '/auth/callback'
       path: '/auth/callback'
@@ -236,6 +288,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedQuestionsQuestionIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/topics/': {
+      id: '/_authenticated/topics/'
+      path: '/topics'
+      fullPath: '/topics/'
+      preLoaderRoute: typeof AuthenticatedTopicsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/topics/$topicId': {
       id: '/_authenticated/topics/$topicId'
       path: '/topics/$topicId'
@@ -247,21 +306,27 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedPasswordRoute: typeof AuthenticatedPasswordRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedSqlAssistantRoute: typeof AuthenticatedSqlAssistantRoute
   AuthenticatedQuestionsQuestionIdRoute: typeof AuthenticatedQuestionsQuestionIdRoute
   AuthenticatedTopicsTopicIdRoute: typeof AuthenticatedTopicsTopicIdRoute
+  AuthenticatedTopicsIndexRoute: typeof AuthenticatedTopicsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedPasswordRoute: AuthenticatedPasswordRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedSqlAssistantRoute: AuthenticatedSqlAssistantRoute,
   AuthenticatedQuestionsQuestionIdRoute: AuthenticatedQuestionsQuestionIdRoute,
   AuthenticatedTopicsTopicIdRoute: AuthenticatedTopicsTopicIdRoute,
+  AuthenticatedTopicsIndexRoute: AuthenticatedTopicsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
