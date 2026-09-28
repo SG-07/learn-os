@@ -41,13 +41,14 @@ function Profile() {
           </div>
 
 
-          {/* Change Password */}
+
+          {/* Reset Password */}
           <div className="pt-5">
             <Link
               to="/password"
               className="inline-flex items-center rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-white dark:text-black dark:hover:bg-gray-200"
             >
-              Change password
+              Reset Password
             </Link>
           </div>
         </div>
