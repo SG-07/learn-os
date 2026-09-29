@@ -11,6 +11,7 @@ import topicsRouter from './src/routes/topics.js'
 // import placementRoutes from './src/routes/placement.js'
 import errorHandler from './src/middleware/errorHandler.js'
 import { getLandingPageHtml } from './view/landingPage.js'
+import { isDebug, debugLog, decodeJwtStructure } from './src/utils/debugLog.js'
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -18,8 +19,30 @@ const PORT = process.env.PORT || 5000
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }))
 app.use(express.json())
+
+if (isDebug) {
+  app.use((req, res, next) => {
+    const authHeader = req.headers.authorization
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null
+
+    debugLog(`--> ${req.method} ${req.originalUrl}`, {
+      headers: req.headers,
+      body: req.body,
+      jwt: token ? decodeJwtStructure(token) : '(no bearer token)',
+    })
+
+    const originalJson = res.json.bind(res)
+    res.json = (body) => {
+      debugLog(`<-- ${req.method} ${req.originalUrl} [${res.statusCode}]`, body)
+      return originalJson(body)
+    }
+
+    next()
+  })
+}
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })

@@ -4,7 +4,7 @@ import { getUsers, getUserDetails } from "../api/auth";
 
 function AdminUsers() {
   const { user } = useAuth();
-  const userRole = (user?.user_metadata?.role || user?.app_metadata?.role || "").toLowerCase();
+  const userRole = (user?.app_metadata?.role || "").toLowerCase();
   const isAdmin = userRole === "admin";
 
   const [users, setUsers] = useState([]);
@@ -221,9 +221,7 @@ function AdminUsers() {
                     Role
                   </p>
                   <p className="text-gray-900 dark:text-white capitalize">
-                    {selectedUserDetails.user_metadata?.role ||
-                      selectedUserDetails.app_metadata?.role ||
-                      "User"}
+                    {selectedUserDetails.app_metadata?.role || "User"}
                   </p>
                 </div>
 
