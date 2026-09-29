@@ -95,6 +95,107 @@ export const getMe = async (req, res, next) => {
   }
 }
 
+// POST /api/auth/change-password
+export const changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'currentPassword and newPassword are required' })
+    }
+
+    const { error: verifyError } = await supabase.auth.signInWithPassword({
+      email: req.user.email,
+      password: currentPassword,
+    })
+
+    if (verifyError) {
+      return res.status(401).json({ error: 'Current password is incorrect' })
+    }
+
+    const { error } = await supabase.auth.admin.updateUserById(req.user.id, {
+      password: newPassword,
+    })
+
+    if (error) return res.status(400).json({ error: error.message })
+
+    res.json({ message: 'Password changed successfully' })
+  } catch (err) {
+    next(err)
+  }
+}
+
+// POST /api/auth/admin/change-password
+export const adminChangePassword = async (req, res, next) => {
+  try {
+    const { email, newPassword } = req.body
+
+    if (!email || !newPassword) {
+      return res.status(400).json({ error: 'email and newPassword are required' })
+    }
+
+    const { data, error: listError } = await supabase.auth.admin.listUsers({ perPage: 1000 })
+
+    if (listError) return res.status(400).json({ error: listError.message })
+
+    const targetUser = data.users.find((u) => u.email?.toLowerCase() === email.toLowerCase())
+
+    if (!targetUser) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
+    const { error } = await supabase.auth.admin.updateUserById(targetUser.id, {
+      password: newPassword,
+    })
+
+    if (error) return res.status(400).json({ error: error.message })
+
+    res.json({ message: 'User password updated successfully' })
+  } catch (err) {
+    next(err)
+  }
+}
+
+// GET /api/auth/users
+export const listUsers = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page, 10) || 1
+    const limit = parseInt(req.query.limit, 10) || 15
+    const search = (req.query.search || '').toLowerCase()
+
+    const { data, error } = await supabase.auth.admin.listUsers({ perPage: 1000 })
+
+    if (error) return res.status(400).json({ error: error.message })
+
+    const filtered = search
+      ? data.users.filter((u) => u.email?.toLowerCase().includes(search))
+      : data.users
+
+    const total = filtered.length
+    const start = (page - 1) * limit
+    const users = filtered.slice(start, start + limit)
+
+    res.json({ users, total })
+  } catch (err) {
+    next(err)
+  }
+}
+
+// GET /api/auth/users/:id
+export const getUserDetails = async (req, res, next) => {
+  try {
+    const { data, error } = await supabase.auth.admin.getUserById(req.params.id)
+
+    if (error || !data?.user) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
+    res.json(data.user)
+  } catch (err) {
+    next(err)
+  }
+}
+
 // PATCH /api/auth/profile
 export const updateProfile = async (req, res, next) => {
   try {

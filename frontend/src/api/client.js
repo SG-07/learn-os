@@ -1,6 +1,7 @@
 // frontend/src/api/client.js
 
 import { supabase } from '../lib/supabaseClient';
+import { debugLog, decodeJwtStructure } from './debugLog';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -16,17 +17,35 @@ export async function request(path, options = {}) {
       ? body
       : JSON.stringify(body);
 
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(optionHeaders || {}),
+  };
+
+  if (session?.access_token) {
+    headers.Authorization = `Bearer ${session.access_token}`;
+  }
+
+  debugLog(`--> ${options.method || 'GET'} ${path}`, {
+    headers,
+    body: body ?? null,
+    jwt: session?.access_token ? decodeJwtStructure(session.access_token) : '(no session token)',
+  });
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    },
+    headers,
     credentials: 'include',
     ...restOptions,
     ...(serializedBody !== undefined && { body: serializedBody }),
   });
 
   const data = await response.json().catch(() => null);
+
+  debugLog(`<-- ${options.method || 'GET'} ${path} [${response.status}]`, data);
 
   /*
    * --------------------------------------------------
