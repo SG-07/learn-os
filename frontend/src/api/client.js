@@ -9,23 +9,16 @@ export async function request(path, options = {}) {
   // this themselves) or a plain object (groups.js's convention, which
   // assumes this function stringifies it). Handle both without
   // double-stringifying an already-stringified body.
-  const { body, ...restOptions } = options;
+  const { body, headers: optionHeaders, ...restOptions } = options;
 
   const serializedBody =
     body === undefined || body === null || typeof body === 'string'
       ? body
       : JSON.stringify(body);
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
   const response = await fetch(`${API_BASE_URL}${path}`, {
     headers: {
       'Content-Type': 'application/json',
-      ...(session?.access_token && {
-        Authorization: `Bearer ${session.access_token}`,
-      }),
       ...(options.headers || {}),
     },
     credentials: 'include',
