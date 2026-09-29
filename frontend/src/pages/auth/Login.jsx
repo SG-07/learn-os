@@ -5,6 +5,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "react-toastify";
 
 import { supabase } from "../../lib/supabaseClient";
+import { debugLog, decodeJwtStructure } from "../../api/debugLog";
 
 function Login() {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ function Login() {
     try {
       setLoading(true);
 
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -32,6 +33,18 @@ function Login() {
       if (error) {
         throw error;
       }
+
+      debugLog("Login: authenticated session", {
+        user: {
+          id: data.user?.id,
+          email: data.user?.email,
+          app_metadata: data.user?.app_metadata,
+          user_metadata: data.user?.user_metadata,
+        },
+        jwt: data.session?.access_token
+          ? decodeJwtStructure(data.session.access_token)
+          : null,
+      });
 
       toast.success("Login successful");
 

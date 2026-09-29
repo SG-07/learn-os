@@ -6,7 +6,7 @@ import { changePassword, adminChangePassword } from "../api/auth";
 
 function Settings() {
   const { user } = useAuth();
-  const userRole = (user?.user_metadata?.role || user?.app_metadata?.role || "").toLowerCase();
+  const userRole = (user?.app_metadata?.role || "").toLowerCase();
   const isAdmin = userRole === "admin";
   const [adminMode, setAdminMode] = useState("own"); // "own" or "other"
 

@@ -19,7 +19,7 @@ function Navbar() {
   const { user, isAuthenticated, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
-  const userRole = (user?.user_metadata?.role || user?.app_metadata?.role || "").toLowerCase();
+  const userRole = (user?.app_metadata?.role || "").toLowerCase();
   const isAdmin = userRole === "admin";
 
   const [loggingOut, setLoggingOut] = useState(false);
