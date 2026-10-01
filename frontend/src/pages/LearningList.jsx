@@ -9,6 +9,7 @@ import {
 
 import { getTopics } from "../api/topics";
 import { getQuestionsByTopic } from "../api/questions";
+import BackButton from "../components/common/BackButton";
 
 function LearningList() {
   const location = useLocation();
@@ -53,6 +54,12 @@ function LearningList() {
   return (
     <div className="min-h-full bg-gray-100 p-8 dark:bg-gray-950">
       <div className="mx-auto max-w-7xl">
+        <div className="mb-4">
+          <BackButton
+            to={isTopicPage ? "/topics" : "/dashboard"}
+            label={isTopicPage ? "Topics" : "Dashboard"}
+          />
+        </div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
           {isTopicPage ? "Questions" : "Topics"}
         </h1>
