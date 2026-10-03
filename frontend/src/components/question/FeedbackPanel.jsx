@@ -2,17 +2,17 @@
 
 import { useState } from "react";
 
-function FeedbackPanel() {
+function FeedbackPanel({ feedback, onRetry }) {
   const [followUpAnswer, setFollowUpAnswer] = useState("");
 
-  // Mock state for now.
-  // Later this will come from the backend.
-  const isCorrect = false;
-  const canRetry = true;
+  const hasResult = Boolean(feedback);
+  const isCorrect = Boolean(feedback?.correct);
+  const canRetry = hasResult && !isCorrect;
   const learningComplete = false;
+  const message = feedback?.message || feedback?.error || "Run or submit your query to see feedback.";
 
   const handleRetry = () => {
-    console.log("Retry answer");
+    if (onRetry) onRetry();
   };
 
   const handleFollowUpSubmit = () => {
@@ -34,15 +34,17 @@ function FeedbackPanel() {
             Feedback
           </h2>
 
-          <span
-            className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-              isCorrect
-                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
-                : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
-            }`}
-          >
-            {isCorrect ? "Correct" : "Incorrect"}
-          </span>
+          {hasResult && (
+            <span
+              className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                isCorrect
+                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                  : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+              }`}
+            >
+              {isCorrect ? "Correct" : "Incorrect"}
+            </span>
+          )}
         </div>
       </div>
 
@@ -52,9 +54,13 @@ function FeedbackPanel() {
           {/* Feedback message */}
           <div>
             <p className="text-sm leading-6 text-gray-700 dark:text-gray-300">
-              Your query filters the correct table, but the condition is
-              using the wrong comparison.
+              {message}
             </p>
+            {Array.isArray(feedback?.rows) && feedback.rows.length > 0 && (
+              <pre className="mt-3 overflow-x-auto rounded-lg bg-gray-50 p-3 text-xs text-gray-700 dark:bg-gray-950 dark:text-gray-300">
+                {JSON.stringify(feedback.rows, null, 2)}
+              </pre>
+            )}
           </div>
 
           {/* Retry */}
@@ -71,7 +77,7 @@ function FeedbackPanel() {
           )}
 
           {/* Follow-up */}
-          {isCorrect && !learningComplete && (
+          {isCorrect && !learningComplete && feedback?.followUp && (
             <div className="border-t border-gray-200 pt-4 dark:border-gray-800">
               <div className="mb-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -79,7 +85,7 @@ function FeedbackPanel() {
                 </p>
 
                 <p className="mt-1 text-sm leading-6 text-gray-700 dark:text-gray-300">
-                  Can you explain why WHERE is appropriate here?
+                  {feedback.followUp}
                 </p>
               </div>
 

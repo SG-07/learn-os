@@ -2,24 +2,47 @@
 
 export const isDebug = process.env.NODE_ENV !== 'production'
 
-// Decodes a JWT's header/payload WITHOUT verifying the signature.
-// Only used for debug logging — never trust this for auth decisions.
-export function decodeJwtStructure(token) {
-  try {
-    const [headerB64, payloadB64] = token.split('.')
-    if (!headerB64 || !payloadB64) return null
+const REDACTED = '[redacted]'
 
-    const decode = (b64) =>
-      JSON.parse(Buffer.from(b64.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'))
+const SENSITIVE_KEYS = new Set([
+  'password',
+  'currentpassword',
+  'newpassword',
+  'access_token',
+  'refresh_token',
+  'session',
+  'token',
+  'authorization',
+  'apikey',
+  'api_key',
+  'service_role',
+  'servicerole',
+  'supabase_service_role_key',
+])
 
-    return { header: decode(headerB64), payload: decode(payloadB64) }
-  } catch {
-    return null
+export function redactForLog(value, seen = new WeakSet()) {
+  if (Array.isArray(value)) {
+    return value.map((item) => redactForLog(item, seen))
   }
+  if (!value || typeof value !== 'object') {
+    return value
+  }
+  if (seen.has(value)) {
+    return '[circular]'
+  }
+  seen.add(value)
+
+  const out = {}
+  for (const [key, child] of Object.entries(value)) {
+    out[key] = SENSITIVE_KEYS.has(key.toLowerCase())
+      ? REDACTED
+      : redactForLog(child, seen)
+  }
+  return out
 }
 
 export function debugLog(label, data) {
   if (!isDebug) return
   console.log(`\n[DEBUG] ${label}`)
-  console.dir(data, { depth: null, colors: true })
+  console.dir(redactForLog(data), { depth: null, colors: true })
 }
