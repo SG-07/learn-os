@@ -48,6 +48,33 @@ export async function recordTopicSolve(userId, topicId) {
   return { problemsSolved, completed }
 }
 
+export const PROGRESS_WRITE_ATTEMPTS = 3
+export const PROGRESS_RETRY_DELAY_MS = 50
+
+function delay(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms)
+  })
+}
+
+export async function recordTopicProgress(userId, topicId, options = {}) {
+  const attempts = options.attempts ?? PROGRESS_WRITE_ATTEMPTS
+  const delayMs = options.delayMs ?? PROGRESS_RETRY_DELAY_MS
+  const solve = options.solve ?? recordTopicSolve
+  const waitFor = options.waitFor ?? delay
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return await solve(userId, topicId)
+    } catch {
+      if (attempt === attempts) return null
+      await waitFor(delayMs)
+    }
+  }
+
+  return null
+}
+
 async function countDistinctSolved(userId, topicId) {
   const { data: problems, error: problemError } = await supabase
     .from('problems')

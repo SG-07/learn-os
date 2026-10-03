@@ -1,6 +1,6 @@
 import { getPracticeProblem, getQuestionById as fetchQuestionById } from '../services/questionService.js'
 import { getPracticeState, hintsUsedFor, hasSolved, recordAttempt, takeNextHint } from '../services/attemptService.js'
-import { recordTopicSolve } from '../services/progressService.js'
+import { recordTopicProgress } from '../services/progressService.js'
 import { requiresOrderedResult, resultsMatch } from '../services/resultCompare.js'
 import { executePracticeQuery, schemaFromDataset } from '../services/sqlRunnerService.js'
 import { hintRevealsAnswer } from '../services/problemGenerationService.js'
@@ -68,30 +68,16 @@ export const executeQuestion = async (req, res, next) => {
       const correct = resultsMatch(executed.rows, problem.expected_result || [], {
         ordered: requiresOrderedResult(problem.correct_sql),
       })
-      const attempt = await recordAttempt({
+      const body = await saveGradedAttempt({
         userId: req.user.id,
-        problemId: problem.id,
+        problem,
         sql,
-        isCorrect: correct,
-        hintsUsed,
-      })
-
-      let progress = null
-      if (correct) {
-        progress = await recordTopicSolve(req.user.id, problem.topic_id)
-      }
-
-      return res.status(200).json({
         correct,
-        columns: executed.columns,
-        rows: executed.rows,
-        rowCount: executed.rows.length,
-        error: null,
-        message: correct ? 'Correct' : 'Result does not match the expected result',
-        attemptId: attempt.id,
-        progress,
-        ...(correct ? { solved: true } : { solved: false }),
+        hintsUsed,
+        executed,
       })
+
+      return res.status(200).json(body)
     } catch (err) {
       if (err?.name !== 'RunnerError') {
         throw err
@@ -120,6 +106,42 @@ export const executeQuestion = async (req, res, next) => {
     }
   } catch (err) {
     next(err)
+  }
+}
+
+export async function saveGradedAttempt({
+  userId,
+  problem,
+  sql,
+  correct,
+  hintsUsed,
+  executed,
+  saveAttempt = recordAttempt,
+  saveProgress = recordTopicProgress,
+}) {
+  const attempt = await saveAttempt({
+    userId,
+    problemId: problem.id,
+    sql,
+    isCorrect: correct,
+    hintsUsed,
+  })
+
+  let progress = null
+  if (correct) {
+    progress = await saveProgress(userId, problem.topic_id)
+  }
+
+  return {
+    correct,
+    columns: executed.columns,
+    rows: executed.rows,
+    rowCount: executed.rows.length,
+    error: null,
+    message: correct ? 'Correct' : 'Result does not match the expected result',
+    attemptId: attempt.id,
+    progress,
+    solved: Boolean(correct),
   }
 }
 

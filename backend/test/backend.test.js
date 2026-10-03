@@ -6,7 +6,8 @@ import { getAnswer, getGuidance } from '../src/controllers/aiController.js'
 import supabase from '../src/config/supabase.js'
 import { takeNextHint } from '../src/services/attemptService.js'
 import { getQuestionsByTopic, getTopics } from '../src/controllers/topicsController.js'
-import { getQuestionById as getQuestionDetail, toLearnerQuestion } from '../src/controllers/questionsController.js'
+import { getQuestionById as getQuestionDetail, saveGradedAttempt, toLearnerQuestion } from '../src/controllers/questionsController.js'
+import { PROGRESS_WRITE_ATTEMPTS, recordTopicProgress } from '../src/services/progressService.js'
 import { hintRevealsAnswer, validateGeneratedProblem } from '../src/services/problemGenerationService.js'
 import { requiresOrderedResult, resultsMatch } from '../src/services/resultCompare.js'
 import {
@@ -727,4 +728,118 @@ test('a stale hint write cannot move hintsUsed backward', async () => {
     assert.deepEqual(result, { hint: null, hintsUsed: 2, remaining: 0 })
     assert.equal(state.rows[0].conversation_history.hintsUsed, 2)
   })
+})
+
+const GRADED_PROBLEM = { id: 'problem-1', topic_id: 'topic-1' }
+const GRADED_ROWS = [{ name: 'Ada' }]
+
+function gradedInput(overrides = {}) {
+  return {
+    userId: 'user-1',
+    problem: GRADED_PROBLEM,
+    sql: 'SELECT name FROM employees',
+    hintsUsed: 0,
+    executed: { columns: ['name'], rows: GRADED_ROWS },
+    ...overrides,
+  }
+}
+
+function progressWriter(solve) {
+  return (userId, topicId) => recordTopicProgress(userId, topicId, {
+    attempts: PROGRESS_WRITE_ATTEMPTS,
+    delayMs: 0,
+    waitFor: async () => {},
+    solve,
+  })
+}
+
+test('a correct attempt returns the progress object', async () => {
+  let progressCalls = 0
+  const body = await saveGradedAttempt(gradedInput({
+    correct: true,
+    saveAttempt: async () => ({ id: 'attempt-1' }),
+    saveProgress: progressWriter(async () => {
+      progressCalls += 1
+      return { problemsSolved: 1, completed: true }
+    }),
+  }))
+
+  assert.equal(progressCalls, 1)
+  assert.equal(body.solved, true)
+  assert.equal(body.attemptId, 'attempt-1')
+  assert.deepEqual(body.progress, { problemsSolved: 1, completed: true })
+  assert.equal(body.correct_sql, undefined)
+})
+
+test('progress is saved when an earlier progress write fails', async () => {
+  let progressCalls = 0
+  const body = await saveGradedAttempt(gradedInput({
+    correct: true,
+    saveAttempt: async () => ({ id: 'attempt-2' }),
+    saveProgress: progressWriter(async () => {
+      progressCalls += 1
+      if (progressCalls === 1) throw new Error('progress write failed')
+      return { problemsSolved: 1, completed: false }
+    }),
+  }))
+
+  assert.equal(progressCalls, 2)
+  assert.equal(body.solved, true)
+  assert.equal(body.attemptId, 'attempt-2')
+  assert.deepEqual(body.progress, { problemsSolved: 1, completed: false })
+})
+
+test('exhausted progress retries still return the saved attempt', async () => {
+  let progressCalls = 0
+  const body = await saveGradedAttempt(gradedInput({
+    correct: true,
+    saveAttempt: async () => ({ id: 'attempt-3' }),
+    saveProgress: progressWriter(async () => {
+      progressCalls += 1
+      throw new Error('progress write failed')
+    }),
+  }))
+
+  assert.equal(progressCalls, PROGRESS_WRITE_ATTEMPTS)
+  assert.equal(body.solved, true)
+  assert.equal(body.attemptId, 'attempt-3')
+  assert.equal(body.progress, null)
+  assert.equal(body.correct, true)
+})
+
+test('a failed attempt insert does not update progress', async () => {
+  let progressCalls = 0
+  await assert.rejects(
+    () => saveGradedAttempt(gradedInput({
+      correct: true,
+      saveAttempt: async () => {
+        throw new Error('attempt insert failed')
+      },
+      saveProgress: async () => {
+        progressCalls += 1
+        return { problemsSolved: 1, completed: true }
+      },
+    })),
+    /attempt insert failed/,
+  )
+  assert.equal(progressCalls, 0)
+})
+
+test('an incorrect attempt does not update progress', async () => {
+  let progressCalls = 0
+  const body = await saveGradedAttempt(gradedInput({
+    correct: false,
+    executed: { columns: ['name'], rows: [] },
+    saveAttempt: async () => ({ id: 'attempt-4' }),
+    saveProgress: async () => {
+      progressCalls += 1
+      return { problemsSolved: 1, completed: true }
+    },
+  }))
+
+  assert.equal(progressCalls, 0)
+  assert.equal(body.solved, false)
+  assert.equal(body.progress, null)
+  assert.equal(body.attemptId, 'attempt-4')
+  assert.equal(body.message, 'Result does not match the expected result')
 })
