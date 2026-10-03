@@ -111,9 +111,9 @@ function Signup() {
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-start justify-center bg-gray-100 px-4 pt-8 dark:bg-gray-950">
       {" "}
-      <div className="w-full max-w-md rounded-xl bg-white p-7 shadow dark:bg-gray-900">
+      <div className="w-full max-w-90 rounded-xl bg-white p-7 shadow dark:bg-gray-900">
         {" "}
-        <h1 className="mb-2 text-[22px] font-bold text-gray-900 dark:text-white">
+        <h1 className="mb-2 text-[40px]! font-bold text-gray-900 dark:text-white">
           {" "}
           Create account{" "}
         </h1>{" "}
