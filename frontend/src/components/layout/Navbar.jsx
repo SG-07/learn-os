@@ -129,15 +129,7 @@ function Navbar() {
                     </p>
                   </div>
 
-                  {/* SQL Assistant */}
-                  <Link
-                    to="/sql-assistant"
-                    className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
-                  >
-                    <span className="material-icons text-[20px]">smart_toy</span>
-
-                    <span>SQL Assistant</span>
-                  </Link>
+                  
 
                   {/* Profile */}
                   <Link
