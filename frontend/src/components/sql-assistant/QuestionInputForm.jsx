@@ -17,10 +17,10 @@ function QuestionInputForm({ mode, onModeChange, onAsk, isLoading }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-4 border-b border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900"
+      className="flex flex-col gap-4"
     >
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+      <div className="flex flex-col gap-3">
+        <h1 className="m-0! text-[20px]! font-semibold tracking-normal! text-gray-900 dark:text-white">
           SQL Assistant
         </h1>
         <ModeToggle mode={mode} onChange={onModeChange} />

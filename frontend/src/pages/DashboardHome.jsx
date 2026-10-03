@@ -7,7 +7,7 @@ function DashboardHome() {
     <div className="min-h-full bg-gray-100 px-4 py-10 dark:bg-gray-950 sm:px-8 sm:py-16">
       <div className="mx-auto max-w-5xl">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-4xl">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white sm:text-4xl">
             What would you like to do today?
           </h1>
           <p className="mt-3 text-sm text-gray-600 dark:text-gray-400 sm:text-base">

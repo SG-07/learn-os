@@ -21,7 +21,7 @@ function SchemaDesign({ schema }) {
       <section className="mt-6">
         <div className="mb-3 flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
+            <h2 className="text-[20px]! font-semibold text-gray-900 dark:text-white">
               Schema
             </h2>
 

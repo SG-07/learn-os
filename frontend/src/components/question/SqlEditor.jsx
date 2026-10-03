@@ -12,6 +12,10 @@ function SqlEditor({
   runDisabled = false,
   submitDisabled = false,
   placeholder = "Write your SQL query here...",
+  readOnly = false,
+  showHelpers = true,
+  submitLabel = "Submit",
+  subtitle = "Write your query and run it to see the result.",
 }) {
   const [isHintOpen, setIsHintOpen] = useState(false);
   const [isWalkthroughOpen, setIsWalkthroughOpen] = useState(false);
@@ -26,27 +30,29 @@ function SqlEditor({
           {" "}
           <div>
             {" "}
-            <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
+            <h2 className="text-[20px]! font-semibold text-gray-900 dark:text-white">
               {" "}
               SQL Query{" "}
             </h2>{" "}
             <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
               {" "}
-              Write your query and run it to see the result.{" "}
+              {subtitle}{" "}
             </p>{" "}
           </div>{" "}
           {/* Actions */}{" "}
           <div className="flex items-center gap-2">
             {" "}
-            <button
-              type="button"
-              onClick={onRun}
-              disabled={runDisabled}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-            >
-              {" "}
-              Run{" "}
-            </button>{" "}
+            {onRun && (
+              <button
+                type="button"
+                onClick={onRun}
+                disabled={runDisabled}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+              >
+                {" "}
+                Run{" "}
+              </button>
+            )}{" "}
             <button
               type="button"
               onClick={onSubmit}
@@ -54,7 +60,7 @@ function SqlEditor({
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {" "}
-              Submit{" "}
+              {submitLabel}{" "}
             </button>{" "}
           </div>{" "}
         </div>{" "}
@@ -66,7 +72,7 @@ function SqlEditor({
             height="100%"
             extensions={[sql()]}
             onChange={onChange}
-            editable={!submitDisabled}
+            editable={!readOnly}
             placeholder={placeholder}
             theme="dark"
             basicSetup={{
@@ -79,6 +85,7 @@ function SqlEditor({
           />{" "}
         </div>{" "}
         {/* ================================================= Floating Help Buttons ================================================= The wrapper itself is vertically centered. The buttons have fixed positions inside it: 0px 52px 104px Therefore hovering one button can NEVER move another button. ================================================= */}{" "}
+        {showHelpers && (
         <div className="absolute right-3 top-1/2 z-20 h-[144px] w-10 -translate-y-1/2">
           {" "}
           {/* Hint */}{" "}
@@ -129,8 +136,11 @@ function SqlEditor({
               <WalkthroughIcon />{" "}
             </span>{" "}
           </button>{" "}
-        </div>{" "}
+        </div>
+        )}{" "}
       </div>{" "}
+      {showHelpers && (
+      <>
       {/* Hint Modal */}{" "}
       <Modal
         isOpen={isHintOpen}
@@ -224,6 +234,8 @@ function SqlEditor({
           </table>{" "}
         </div>{" "}
       </Modal>{" "}
+      </>
+      )}
     </>
   );
 }
