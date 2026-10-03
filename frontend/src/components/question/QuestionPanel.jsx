@@ -62,13 +62,13 @@ function QuestionPanel({ question }) {
       </div>
 
       {/* Question title */}
-      <h1 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
+      <h1 className="mb-4 text-[30px]! font-semibold text-gray-900 dark:text-white">
         {question.title}
       </h1>
 
       {/* Question prompt */}
       <div className="mb-6">
-        <h2 className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+        <h2 className="mb-2 text-[20px]! font-semibold text-gray-700 dark:text-gray-300">
           Problem
         </h2>
         <p className="whitespace-pre-wrap text-sm leading-6 text-gray-600 dark:text-gray-400">
