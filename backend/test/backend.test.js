@@ -18,6 +18,7 @@ import {
   mapDatabaseError,
   MAX_RESULT_ROWS,
   STATEMENT_TIMEOUT_MS,
+  runnerConfig,
 } from '../src/services/sqlRunnerService.js'
 
 const NIL_ID = '00000000-0000-4000-8000-000000000000'
@@ -106,6 +107,41 @@ test('missing question id returns 404', async () => {
     throw err
   })
   assert.equal(res.statusCode, 404)
+})
+
+const RUNNER_CA = '-----BEGIN CERTIFICATE-----\nTEST\n-----END CERTIFICATE-----'
+const RUNNER_URL = 'postgresql://runner:secret@db.example.com:5432/postgres?sslmode=require&sslrootcert=/tmp/ca.pem'
+
+test('remote runner configuration requires verified TLS', () => {
+  const config = runnerConfig(RUNNER_URL, { SQL_RUNNER_SSL_CA: RUNNER_CA })
+
+  assert.equal(config.ssl.rejectUnauthorized, true)
+  assert.equal(config.ssl.ca, RUNNER_CA)
+  assert.equal(config.connectionString.includes('sslmode'), false)
+  assert.equal(config.connectionString.includes('sslrootcert'), false)
+  assert.equal(config.connectionString.includes('secret'), true)
+})
+
+test('runner TLS verification cannot be disabled by the connection string', () => {
+  for (const sslmode of ['require', 'no-verify', 'disable', 'prefer']) {
+    const config = runnerConfig(
+      `postgresql://runner:secret@db.example.com:5432/postgres?sslmode=${sslmode}`,
+      { SQL_RUNNER_SSL_CA: RUNNER_CA },
+    )
+    assert.equal(config.ssl.rejectUnauthorized, true)
+    assert.equal(config.connectionString.includes('sslmode'), false)
+  }
+})
+
+test('runner configuration fails closed when the CA is missing', () => {
+  assert.throws(
+    () => runnerConfig(RUNNER_URL, {}),
+    (err) => err.name === 'RunnerError' && err.message === 'SQL_RUNNER_SSL_CA is not configured',
+  )
+  assert.throws(
+    () => runnerConfig(RUNNER_URL, { SQL_RUNNER_SSL_CA_FILE: 'C:\\missing\\runner-ca.pem' }),
+    (err) => err.name === 'RunnerError' && err.message === 'SQL_RUNNER_SSL_CA_FILE could not be read',
+  )
 })
 
 test('sql runner rejects mutations, multiple statements, and production tables', () => {

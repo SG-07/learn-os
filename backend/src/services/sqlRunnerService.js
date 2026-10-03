@@ -1,3 +1,4 @@
+import fs from 'node:fs'
 import pg from 'pg'
 import 'dotenv/config'
 
@@ -105,6 +106,8 @@ const KNOWN_MESSAGES = new Set([
   'SQL syntax failure',
   'Result too large',
   'SQL_RUNNER_DATABASE_URL is not configured',
+  'SQL_RUNNER_SSL_CA is not configured',
+  'SQL_RUNNER_SSL_CA_FILE could not be read',
   'A practice fixture is required',
   'SQL runner connection failed',
   'SQL runner failed to load the practice fixture',
@@ -309,13 +312,64 @@ export async function executePracticeQuery(sql, fixture) {
   }
 }
 
-function runnerConfig(connectionString) {
-  const requiresSsl = /sslmode=require/i.test(connectionString)
+const SSL_QUERY_KEYS = new Set([
+  'ssl',
+  'sslmode',
+  'sslrootcert',
+  'sslcert',
+  'sslkey',
+  'sslnegotiation',
+  'uselibpqcompat',
+])
 
+export function runnerConfig(connectionString, env = process.env) {
   return {
-    connectionString,
+    connectionString: stripSslParams(connectionString),
     application_name: 'learn-os-sql-runner',
-    ssl: requiresSsl ? { rejectUnauthorized: false } : undefined,
+    ssl: {
+      rejectUnauthorized: true,
+      ca: readRunnerCa(env),
+    },
+  }
+}
+
+function stripSslParams(connectionString) {
+  let parsed
+  try {
+    parsed = new URL(connectionString)
+  } catch {
+    throw runnerError('SQL_RUNNER_DATABASE_URL is not configured')
+  }
+
+  for (const key of [...parsed.searchParams.keys()]) {
+    if (SSL_QUERY_KEYS.has(key.toLowerCase())) {
+      parsed.searchParams.delete(key)
+    }
+  }
+
+  return parsed.toString()
+}
+
+function readRunnerCa(env) {
+  const inline = typeof env.SQL_RUNNER_SSL_CA === 'string' ? env.SQL_RUNNER_SSL_CA.trim() : ''
+  if (inline) {
+    return inline.replace(/\\n/g, '\n')
+  }
+
+  const filePath = typeof env.SQL_RUNNER_SSL_CA_FILE === 'string' ? env.SQL_RUNNER_SSL_CA_FILE.trim() : ''
+  if (!filePath) {
+    throw runnerError('SQL_RUNNER_SSL_CA is not configured')
+  }
+
+  try {
+    const ca = fs.readFileSync(filePath, 'utf8').trim()
+    if (!ca.includes('BEGIN CERTIFICATE')) {
+      throw runnerError('SQL_RUNNER_SSL_CA is not configured')
+    }
+    return ca
+  } catch (err) {
+    if (err?.name === 'RunnerError') throw err
+    throw runnerError('SQL_RUNNER_SSL_CA_FILE could not be read')
   }
 }
 
