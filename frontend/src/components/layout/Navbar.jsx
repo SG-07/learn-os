@@ -129,7 +129,7 @@ function Navbar() {
                     </p>
                   </div>
 
-                  
+
 
                   {/* Profile */}
                   <Link
