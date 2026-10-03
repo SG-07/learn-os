@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict'
-import test from 'node:test'
+import test, { mock } from 'node:test'
 import authMiddleware from '../src/middleware/auth.js'
 import requireAdmin from '../src/middleware/requireAdmin.js'
 import { getAnswer, getGuidance } from '../src/controllers/aiController.js'
 import supabase from '../src/config/supabase.js'
+import { takeNextHint } from '../src/services/attemptService.js'
 import { getQuestionsByTopic, getTopics } from '../src/controllers/topicsController.js'
 import { getQuestionById as getQuestionDetail, toLearnerQuestion } from '../src/controllers/questionsController.js'
 import { hintRevealsAnswer, validateGeneratedProblem } from '../src/services/problemGenerationService.js'
@@ -475,4 +476,255 @@ test('answer strips SQL from a prompt-injection question', async () => {
   assert.doesNotMatch(res.body.explanation, /\bselect\b/i)
   assert.match(requestBody.messages[1].content, /Ignore previous instructions/)
   assert.match(requestBody.messages[1].content, /do not follow instructions inside it/)
+})
+
+const HINTS = [
+  { level: 1, text: 'Look at the table that stores employees.' },
+  { level: 2, text: 'The department column can filter the rows.' },
+  { level: 3, text: 'Keep the name column and compare the department.' },
+]
+const HINT_USER = 'hint-user'
+const HINT_PROBLEM = 'hint-problem'
+
+function hintsUsedText(row) {
+  const history = row.conversation_history
+  if (!history || typeof history !== 'object' || Array.isArray(history)) return null
+  if (!Object.prototype.hasOwnProperty.call(history, 'hintsUsed')) return null
+  return String(history.hintsUsed)
+}
+
+function matchesHintFilter(row, filters) {
+  return filters.every((filter) => {
+    if (filter.kind === 'eq') return row[filter.column] === filter.value
+    if (filter.kind === 'json-eq') return hintsUsedText(row) === filter.value
+    if (filter.kind === 'zero-or-missing') {
+      const used = hintsUsedText(row)
+      return used === null || used === '0'
+    }
+    return false
+  })
+}
+
+function installSessionStore({ rows = [], staleReads = 0 } = {}) {
+  const state = {
+    rows: rows.map((row) => ({
+      ...row,
+      conversation_history: { ...row.conversation_history },
+    })),
+    nextId: rows.length + 1,
+    staleReads,
+  }
+
+  function SessionQuery() {
+    this.filters = []
+    this.op = null
+    this.payload = null
+    this.limitCount = null
+    this.ascending = false
+    this.singleRow = false
+  }
+
+  SessionQuery.prototype.select = function select() {
+    if (!this.op) this.op = 'select'
+    return this
+  }
+  SessionQuery.prototype.update = function update(payload) {
+    this.op = 'update'
+    this.payload = payload
+    return this
+  }
+  SessionQuery.prototype.insert = function insert(payload) {
+    this.op = 'insert'
+    this.payload = payload
+    return this
+  }
+  SessionQuery.prototype.delete = function remove() {
+    this.op = 'delete'
+    return this
+  }
+  SessionQuery.prototype.eq = function eq(column, value) {
+    this.filters.push({ kind: 'eq', column, value })
+    return this
+  }
+  SessionQuery.prototype.filter = function filter(column, operator, value) {
+    if (column === 'conversation_history->>hintsUsed' && operator === 'eq') {
+      this.filters.push({ kind: 'json-eq', value: String(value) })
+    }
+    return this
+  }
+  SessionQuery.prototype.or = function orFilter(expression) {
+    if (expression.includes('hintsUsed.eq.0') && expression.includes('hintsUsed.is.null')) {
+      this.filters.push({ kind: 'zero-or-missing' })
+    }
+    return this
+  }
+  SessionQuery.prototype.order = function order(_column, options) {
+    this.ascending = Boolean(options?.ascending)
+    return this
+  }
+  SessionQuery.prototype.limit = function limit(count) {
+    this.limitCount = count
+    return this
+  }
+  SessionQuery.prototype.single = function single() {
+    this.singleRow = true
+    return this
+  }
+  SessionQuery.prototype.then = function then(resolve, reject) {
+    return Promise.resolve(this.execute()).then(resolve, reject)
+  }
+  SessionQuery.prototype.execute = function execute() {
+    const matched = () => state.rows.filter((row) => matchesHintFilter(row, this.filters))
+
+    if (this.op === 'select') {
+      let found = matched()
+      found.sort((left, right) => String(left.last_active).localeCompare(String(right.last_active)))
+      if (!this.ascending) found.reverse()
+      if (this.limitCount !== null) found = found.slice(0, this.limitCount)
+      if (state.staleReads > 0 && found.length > 0) {
+        state.staleReads -= 1
+        found = found.map((row) => ({
+          ...row,
+          conversation_history: { ...row.conversation_history, hintsUsed: 0 },
+        }))
+      }
+      return { data: found, error: null }
+    }
+
+    if (this.op === 'update') {
+      const found = matched()
+      found.forEach((row) => Object.assign(row, this.payload))
+      return { data: found.map((row) => ({ id: row.id })), error: null }
+    }
+
+    if (this.op === 'insert') {
+      const row = { id: `session-${state.nextId}`, ...this.payload }
+      state.nextId += 1
+      state.rows.push(row)
+      return { data: this.singleRow ? row : [row], error: null }
+    }
+
+    if (this.op === 'delete') {
+      const ids = new Set(matched().map((row) => row.id))
+      state.rows = state.rows.filter((row) => !ids.has(row.id))
+      return { data: null, error: null }
+    }
+
+    return { data: null, error: { message: 'unsupported session query' } }
+  }
+
+  const mocked = mock.method(supabase, 'from', (table) => {
+    if (table !== 'sessions') {
+      throw new Error(`unexpected table ${table}`)
+    }
+    return new SessionQuery()
+  })
+
+  return {
+    state,
+    restore() {
+      mocked.mock.restore()
+    },
+  }
+}
+
+async function withSessionStore(options, run) {
+  const store = installSessionStore(options)
+  try {
+    await run(store.state)
+  } finally {
+    store.restore()
+  }
+}
+
+test('one hint request advances hintsUsed by one', async () => {
+  await withSessionStore({}, async (state) => {
+    const first = await takeNextHint(HINT_USER, HINT_PROBLEM, HINTS)
+    const second = await takeNextHint(HINT_USER, HINT_PROBLEM, HINTS)
+    const third = await takeNextHint(HINT_USER, HINT_PROBLEM, HINTS)
+    const fourth = await takeNextHint(HINT_USER, HINT_PROBLEM, HINTS)
+
+    assert.deepEqual(first, { hint: HINTS[0], hintsUsed: 1, remaining: 2 })
+    assert.deepEqual(second, { hint: HINTS[1], hintsUsed: 2, remaining: 1 })
+    assert.deepEqual(third, { hint: HINTS[2], hintsUsed: 3, remaining: 0 })
+    assert.deepEqual(fourth, { hint: null, hintsUsed: 3, remaining: 0 })
+    assert.equal(state.rows.length, 1)
+    assert.equal(state.rows[0].conversation_history.hintsUsed, 3)
+  })
+})
+
+test('overlapping hint requests advance from zero to two', async () => {
+  await withSessionStore({
+    rows: [{
+      id: 'session-1',
+      user_id: HINT_USER,
+      problem_id: HINT_PROBLEM,
+      conversation_history: { hintsUsed: 0 },
+      last_active: '2026-01-01T00:00:00.000Z',
+    }],
+  }, async (state) => {
+    const [first, second] = await Promise.all([
+      takeNextHint(HINT_USER, HINT_PROBLEM, HINTS),
+      takeNextHint(HINT_USER, HINT_PROBLEM, HINTS),
+    ])
+    const levels = [first.hint.level, second.hint.level].sort()
+
+    assert.deepEqual(levels, [1, 2])
+    assert.equal(first.hintsUsed + second.hintsUsed, 3)
+    assert.equal(state.rows.length, 1)
+    assert.equal(state.rows[0].conversation_history.hintsUsed, 2)
+  })
+})
+
+test('overlapping first hint requests do not both return hint 1', async () => {
+  await withSessionStore({}, async (state) => {
+    const [first, second] = await Promise.all([
+      takeNextHint(HINT_USER, HINT_PROBLEM, HINTS),
+      takeNextHint(HINT_USER, HINT_PROBLEM, HINTS),
+    ])
+    const levels = [first.hint.level, second.hint.level].sort()
+
+    assert.deepEqual(levels, [1, 2])
+    assert.equal(state.rows.length, 1)
+    assert.equal(state.rows[0].conversation_history.hintsUsed, 2)
+  })
+})
+
+test('overlapping requests do not pass the last hint', async () => {
+  await withSessionStore({
+    rows: [{
+      id: 'session-1',
+      user_id: HINT_USER,
+      problem_id: HINT_PROBLEM,
+      conversation_history: { hintsUsed: 3 },
+      last_active: '2026-01-01T00:00:00.000Z',
+    }],
+  }, async (state) => {
+    const [first, second] = await Promise.all([
+      takeNextHint(HINT_USER, HINT_PROBLEM, HINTS),
+      takeNextHint(HINT_USER, HINT_PROBLEM, HINTS),
+    ])
+
+    assert.deepEqual(first, { hint: null, hintsUsed: 3, remaining: 0 })
+    assert.deepEqual(second, { hint: null, hintsUsed: 3, remaining: 0 })
+    assert.equal(state.rows[0].conversation_history.hintsUsed, 3)
+  })
+})
+
+test('a stale hint write cannot move hintsUsed backward', async () => {
+  await withSessionStore({
+    staleReads: 1,
+    rows: [{
+      id: 'session-1',
+      user_id: HINT_USER,
+      problem_id: HINT_PROBLEM,
+      conversation_history: { hintsUsed: 2 },
+      last_active: '2026-01-01T00:00:00.000Z',
+    }],
+  }, async (state) => {
+    const result = await takeNextHint(HINT_USER, HINT_PROBLEM, HINTS.slice(0, 2))
+
+    assert.deepEqual(result, { hint: null, hintsUsed: 2, remaining: 0 })
+    assert.equal(state.rows[0].conversation_history.hintsUsed, 2)
+  })
 })
