@@ -12,6 +12,10 @@ function SqlEditor({
   runDisabled = false,
   submitDisabled = false,
   placeholder = "Write your SQL query here...",
+  hintText = "",
+  onHint,
+  expectedRows = [],
+  hintLoading = false,
   readOnly = false,
   showHelpers = true,
   submitLabel = "Submit",
@@ -91,7 +95,10 @@ function SqlEditor({
           {/* Hint */}{" "}
           <button
             type="button"
-            onClick={() => setIsHintOpen(true)}
+            onClick={() => {
+              setIsHintOpen(true);
+              if (onHint) onHint();
+            }}
             className="group absolute right-0 top-0 flex h-10 w-10 origin-right items-center justify-end overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-[width] duration-200 hover:w-32 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800"
           >
             {" "}
@@ -149,10 +156,8 @@ function SqlEditor({
       >
         {" "}
         <p className="text-sm leading-6 text-gray-700 dark:text-gray-300">
-          {" "}
-          Think about which comparison operator is used when we want values
-          greater than 50000.{" "}
-        </p>{" "}
+          {hintLoading ? "Loading hint..." : hintText || "No hint is available yet."}
+        </p>
       </Modal>{" "}
       {/* Walkthrough Modal */}{" "}
       <Modal
@@ -176,63 +181,7 @@ function SqlEditor({
         title="Expected Result"
       >
         {" "}
-        <div className="overflow-x-auto">
-          {" "}
-          <table className="min-w-full text-left text-sm">
-            {" "}
-            <thead>
-              {" "}
-              <tr className="border-b border-gray-200 dark:border-gray-700">
-                {" "}
-                <th className="px-3 py-2 font-semibold text-gray-900 dark:text-white">
-                  {" "}
-                  id{" "}
-                </th>{" "}
-                <th className="px-3 py-2 font-semibold text-gray-900 dark:text-white">
-                  {" "}
-                  name{" "}
-                </th>{" "}
-                <th className="px-3 py-2 font-semibold text-gray-900 dark:text-white">
-                  {" "}
-                  salary{" "}
-                </th>{" "}
-              </tr>{" "}
-            </thead>{" "}
-            <tbody>
-              {" "}
-              <tr className="border-b border-gray-200 dark:border-gray-800">
-                {" "}
-                <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
-                  {" "}
-                  1{" "}
-                </td>{" "}
-                <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
-                  {" "}
-                  Rahul{" "}
-                </td>{" "}
-                <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
-                  {" "}
-                  60000{" "}
-                </td>{" "}
-              </tr>{" "}
-              <tr>
-                {" "}
-                <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
-                  {" "}
-                  3{" "}
-                </td>{" "}
-                <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
-                  {" "}
-                  Amit{" "}
-                </td>{" "}
-                <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
-                  {" "}
-                  75000{" "}
-                </td>{" "}
-              </tr>{" "}
-            </tbody>{" "}
-          </table>{" "}
-        </div>{" "}
+        <ResultTable rows={expectedRows} />
       </Modal>{" "}
       </>
       )}
@@ -298,4 +247,44 @@ function WalkthroughIcon() {
     </svg>
   );
 }
+function ResultTable({ rows }) {
+  const list = Array.isArray(rows) ? rows : [];
+  const columns = list[0] ? Object.keys(list[0]) : [];
+
+  if (columns.length === 0) {
+    return (
+      <p className="text-sm text-gray-500 dark:text-gray-400">
+        No expected rows for this question.
+      </p>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="min-w-full text-left text-sm">
+        <thead>
+          <tr className="border-b border-gray-200 dark:border-gray-700">
+            {columns.map((column) => (
+              <th key={column} className="px-3 py-2 font-semibold text-gray-900 dark:text-white">
+                {column}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {list.map((row, index) => (
+            <tr key={index} className="border-b border-gray-200 dark:border-gray-800">
+              {columns.map((column) => (
+                <td key={column} className="px-3 py-2 text-gray-700 dark:text-gray-300">
+                  {String(row[column] ?? "")}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export default SqlEditor;

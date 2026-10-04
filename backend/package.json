@@ -1,12 +1,10 @@
 {
-  "name": "backend",
+  "name": "learn-os-backend",
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
-  "name": "learn-os-backend",
-  "version": "1.0.0",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --test test/**/*.test.js",
     "dev": "nodemon index.js",
     "start": "node index.js"
   },
@@ -19,10 +17,10 @@
     "cors": "^2.8.6",
     "dotenv": "^18.0.2",
     "express": "^5.2.1",
+    "pg": "^8.23.1",
     "ws": "^8.21.3"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
   }
-  
 }

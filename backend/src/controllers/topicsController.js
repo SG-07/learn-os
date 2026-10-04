@@ -1,4 +1,5 @@
 import {
+  countQuestionsByTopic,
   getTopicById,
   listQuestionsByTopic,
   listTopics,
@@ -9,13 +10,17 @@ const UUID_RE =
 
 export const getTopics = async (req, res, next) => {
   try {
-    const topics = await listTopics()
+    const [topics, counts] = await Promise.all([
+      listTopics(),
+      countQuestionsByTopic(),
+    ])
 
     res.status(200).json({
       topics: topics.map((topic) => ({
         id: topic.id,
         name: topic.title,
         level: topic.tier,
+        questionCount: counts[topic.id] || 0,
       })),
     })
   } catch (err) {
