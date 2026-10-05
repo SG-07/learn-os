@@ -1,6 +1,6 @@
 // frontend/src/pages/LearningList.jsx
 
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Link,
   useLocation,
@@ -10,6 +10,7 @@ import {
 import { getTopics } from "../api/topics";
 import { getQuestionsByTopic } from "../api/questions";
 import BackButton from "../components/common/BackButton";
+import CardSkeleton from "../components/common/CardSkeleton";
 
 function LearningList() {
   const location = useLocation();
@@ -17,39 +18,16 @@ function LearningList() {
     strict: false,
   });
 
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
   const isTopicPage = location.pathname.startsWith("/topics/");
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true);
-        setError("");
+  const { data, isPending, isError } = useQuery({
+    queryKey: isTopicPage ? ["questions", topicId] : ["topics"],
+    queryFn: () =>
+      isTopicPage ? getQuestionsByTopic(topicId) : getTopics(),
+    enabled: !isTopicPage || !!topicId,
+  });
 
-        if (isTopicPage) {
-          const data = await getQuestionsByTopic(topicId);
-          setItems(data.questions);
-        } else {
-          const data = await getTopics();
-          setItems(data.topics);
-        }
-      } catch (error) {
-        console.error("Failed to load data:", error);
-        setError("Unable to load data.");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    if (isTopicPage && !topicId) {
-      return;
-    }
-
-    fetchData();
-  }, [isTopicPage, topicId]);
+  const items = (isTopicPage ? data?.questions : data?.topics) ?? [];
 
   return (
     <div className="min-h-full bg-gray-100 p-8 dark:bg-gray-950">
@@ -60,13 +38,31 @@ function LearningList() {
             label={isTopicPage ? "Topics" : "Dashboard"}
           />
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-[30px]! font-bold text-gray-900 dark:text-white">
           {isTopicPage ? "Questions" : "Topics"}
         </h1>
 
-        {/* loading/error/empty states */}
+        {isPending && (
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }, (_, i) => (
+              <CardSkeleton key={i} />
+            ))}
+          </div>
+        )}
 
-        {!loading && !error && (
+        {isError && (
+          <p className="mt-6 text-red-600 dark:text-red-400">
+            Unable to load data.
+          </p>
+        )}
+
+        {!isPending && !isError && items.length === 0 && (
+          <p className="mt-6 text-gray-600 dark:text-gray-400">
+            Nothing here yet.
+          </p>
+        )}
+
+        {!isPending && !isError && items.length > 0 && (
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {items.map((item) => (
               <Link
