@@ -14,7 +14,7 @@ function SqlEditor({
   placeholder = "Write your SQL query here...",
   hintText = "",
   onHint,
-  expectedRows = [],
+  expectedRows = null,
   hintLoading = false,
   readOnly = false,
   showHelpers = true,
@@ -248,13 +248,20 @@ function WalkthroughIcon() {
   );
 }
 function ResultTable({ rows }) {
-  const list = Array.isArray(rows) ? rows : [];
-  const columns = list[0] ? Object.keys(list[0]) : [];
+  if (!Array.isArray(rows)) {
+    return (
+      <p className="text-sm text-gray-500 dark:text-gray-400">
+        Expected output is available after your query runs successfully.
+      </p>
+    );
+  }
+
+  const columns = rows[0] ? Object.keys(rows[0]) : [];
 
   if (columns.length === 0) {
     return (
       <p className="text-sm text-gray-500 dark:text-gray-400">
-        No expected rows for this question.
+        The expected result has no rows.
       </p>
     );
   }
