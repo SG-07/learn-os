@@ -1,12 +1,25 @@
 // frontend/src/components/sql-assistant/QuestionInputForm.jsx
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ModeToggle from "./ModeToggle";
 
-function QuestionInputForm({ mode, onModeChange, onAsk, isLoading }) {
-  const [question, setQuestion] = useState("");
-  const [schema, setSchema] = useState("");
-  const [showSchema, setShowSchema] = useState(false);
+function QuestionInputForm({
+  mode,
+  onModeChange,
+  onAsk,
+  isLoading,
+  questionValue = "",
+  schemaValue = "",
+}) {
+  const [question, setQuestion] = useState(questionValue);
+  const [schema, setSchema] = useState(schemaValue);
+  const [showSchema, setShowSchema] = useState(Boolean(schemaValue));
+
+  useEffect(() => {
+    setQuestion(questionValue);
+    setSchema(schemaValue);
+    if (schemaValue.trim()) setShowSchema(true);
+  }, [questionValue, schemaValue]);
 
   const handleSubmit = (event) => {
     event.preventDefault();

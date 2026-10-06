@@ -13,6 +13,7 @@ function QuestionPage() {
   const [feedback, setFeedback] = useState(null);
   const [hintText, setHintText] = useState("");
   const [hintLoading, setHintLoading] = useState(false);
+  const [expectedRows, setExpectedRows] = useState(null);
   const [error, setError] = useState("");
   const [running, setRunning] = useState(false);
   const loading = Boolean(questionId) && loadedId !== questionId;
@@ -31,6 +32,7 @@ function QuestionPage() {
         setError("");
         setFeedback(null);
         setHintText("");
+        setExpectedRows(null);
         setQuery("");
         setLoadedId(questionId);
       })
@@ -60,6 +62,9 @@ function QuestionPage() {
     try {
       const result = await executeQuestion(questionId, query);
       setFeedback(result);
+      if (Array.isArray(result.expectedRows)) {
+        setExpectedRows(result.expectedRows);
+      }
       if (result.solved) {
         setQuestion((current) => (current ? { ...current, solved: true } : current));
       }
@@ -118,7 +123,7 @@ function QuestionPage() {
             hintText={hintText}
             hintLoading={hintLoading}
             onHint={loadHint}
-            expectedRows={question.expectedResult || []}
+            expectedRows={expectedRows}
           />
         </div>
         <div className="h-[40%] overflow-y-auto">
