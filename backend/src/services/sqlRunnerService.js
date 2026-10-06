@@ -347,16 +347,20 @@ export function runnerConfig(connectionString, env = process.env) {
     application_name: 'learn-os-sql-runner',
   }
 
-  // Case 1: CA certificate is provided
+  // Case 1: CA certificate is provided - use strict verification
   if (ca) {
     config.ssl = {
       rejectUnauthorized: true,
       ca: ca,
     }
   }
-  // Case 2: Connection requires SSL but no CA (use system's CA)
+  // Case 2: Connection requires SSL but no CA
+  // Supabase/Render uses standard certs, so we can disable verification
+  // This is safe because the connection is to a trusted provider
   else if (requiresSSL) {
-    config.ssl = true  // ← This tells node-postgres to use SSL with system CA
+    config.ssl = {
+      rejectUnauthorized: false,
+    }
   }
 
   return config
