@@ -155,15 +155,12 @@ function Settings() {
   return (
     <div className="min-h-full bg-gray-100 p-4 dark:bg-gray-950 sm:p-8">
       <div className="mx-auto max-w-2xl">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-[40px]! font-bold text-gray-900 dark:text-white">
           Change Password
         </h1>
 
         {/* Password Change Section */}
         <div className="mt-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Change Password
-          </h2>
 
           {isAdmin && (
             <div className="mt-6 mb-6 space-y-4 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
