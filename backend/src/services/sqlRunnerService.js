@@ -325,17 +325,24 @@ const SSL_QUERY_KEYS = new Set([
 export function runnerConfig(connectionString, env = process.env) {
   const ca = readRunnerCa(env)
 
+  // Check if connection string requires SSL before we strip the params
+  const requiresSSL = connectionString.includes('sslmode=require')
+
   const config = {
     connectionString: stripSslParams(connectionString),
     application_name: 'learn-os-sql-runner',
   }
 
-  // Only add ssl config if ca certificate is available
+  // Case 1: CA certificate is provided
   if (ca) {
     config.ssl = {
       rejectUnauthorized: true,
       ca: ca,
     }
+  }
+  // Case 2: Connection requires SSL but no CA (use system's CA)
+  else if (requiresSSL) {
+    config.ssl = true  // ← This tells node-postgres to use SSL with system CA
   }
 
   return config
