@@ -167,23 +167,37 @@ export function fixtureMermaid(fixtureOrName) {
 }
 
 export function schemaFromDataset(datasetSchema) {
-  if (typeof datasetSchema !== 'string' || datasetSchema.trim() === '') {
+  const parsed = parseDatasetSchema(datasetSchema)
+  if (!parsed) {
     return { tables: [] }
   }
 
-  try {
-    const parsed = JSON.parse(datasetSchema)
-    if (parsed?.fixture && practiceFixtures[parsed.fixture]) {
-      return serializeFixture(parsed.fixture)
-    }
-    if (Array.isArray(parsed?.tables)) {
-      return { tables: parsed.tables }
-    }
-  } catch {
-    return { tables: [], description: datasetSchema }
+  if (parsed.fixture && practiceFixtures[parsed.fixture]) {
+    return serializeFixture(parsed.fixture)
+  }
+  if (Array.isArray(parsed.tables)) {
+    return { tables: parsed.tables, ...(parsed.fixture ? { fixture: parsed.fixture } : {}) }
   }
 
   return { tables: [] }
+}
+
+function parseDatasetSchema(datasetSchema) {
+  if (!datasetSchema) return null
+  if (typeof datasetSchema === 'object') return datasetSchema
+  if (typeof datasetSchema !== 'string' || datasetSchema.trim() === '') return null
+
+  try {
+    const parsed = JSON.parse(datasetSchema)
+    if (typeof parsed === 'string') {
+      return JSON.parse(parsed)
+    }
+    if (parsed && typeof parsed === 'object') return parsed
+  } catch {
+    return null
+  }
+
+  return null
 }
 
 export function validatePracticeSql(sql) {

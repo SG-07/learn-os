@@ -99,14 +99,17 @@ function SqlAssistantPage() {
     setError(null);
     try {
       const result = await getSimilarQuestion({ originalQuestion: question, schema });
+      const nextQuestion = typeof result.question === "string" ? result.question : "";
+      const nextSchema = result.schema || "";
       resetSession();
-      setQuestion(result.question);
-      setSchema(result.schema || "");
+      setMode("teach");
+      setQuestion(nextQuestion);
+      setSchema(nextSchema);
       setMermaidSource(result.mermaid || "");
 
       const guidance = await getAiGuidance({
-        question: result.question,
-        schema: result.schema || "",
+        question: nextQuestion,
+        schema: nextSchema,
         history: [],
       });
       setHistory([{ role: "assistant", content: guidance.message }]);
@@ -118,7 +121,8 @@ function SqlAssistantPage() {
   };
 
   const showReinforcement = mode === "teach" ? solved : Boolean(answer);
-  const canAttempt = mode === "teach" && history.length > 0 && !solved;
+  const canAttempt = mode === "teach" && question.trim().length > 0 && !solved;
+  const assistantBusy = isLoading || isPracticeLoading;
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-gray-50 dark:bg-gray-950">
@@ -129,7 +133,14 @@ function SqlAssistantPage() {
             <div className="mb-4">
               <BackButton to="/dashboard" label="Dashboard" />
             </div>
-            <QuestionInputForm mode={mode} onModeChange={setMode} onAsk={handleAsk} isLoading={isLoading} />
+            <QuestionInputForm
+              mode={mode}
+              onModeChange={setMode}
+              onAsk={handleAsk}
+              isLoading={assistantBusy}
+              questionValue={question}
+              schemaValue={schema}
+            />
 
             {error && (
               <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">
@@ -166,15 +177,15 @@ function SqlAssistantPage() {
               onChange={setAttempt}
               onSubmit={() => handleCheckAttempt(attempt.trim())}
               showHelpers={false}
-              submitLabel={isLoading ? "Checking..." : "Check my attempt"}
+              submitLabel={assistantBusy ? "Checking..." : "Check my attempt"}
               subtitle={
                 canAttempt
-                  ? "Write your attempt and check it with the assistant."
+                  ? question
                   : "Ask a question in teach mode to start writing attempts."
               }
               placeholder="Write your SQL attempt here..."
               readOnly={!canAttempt}
-              submitDisabled={!canAttempt || !attempt.trim() || isLoading}
+              submitDisabled={!canAttempt || !attempt.trim() || assistantBusy}
             />
           </div>
 
@@ -189,8 +200,8 @@ function SqlAssistantPage() {
                     : "idle"
               }
               messages={mode === "teach" ? history : []}
-              isLoading={isLoading}
-              onNextHint={mode === "teach" && history.length > 0 && !solved ? handleNextHint : undefined}
+              isLoading={assistantBusy}
+              onNextHint={canAttempt ? handleNextHint : undefined}
               idleText="Ask a question to get feedback here."
             >
               {mode === "answer" && answer && <AnswerPanel answer={answer} />}

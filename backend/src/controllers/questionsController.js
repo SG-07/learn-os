@@ -75,6 +75,7 @@ export const executeQuestion = async (req, res, next) => {
         correct,
         hintsUsed,
         executed,
+        expectedRows: problem.expected_result,
       })
 
       return res.status(200).json(body)
@@ -94,15 +95,7 @@ export const executeQuestion = async (req, res, next) => {
         })
       }
 
-      return res.status(status).json({
-        correct: false,
-        columns: [],
-        rows: [],
-        rowCount: 0,
-        error: err.message,
-        message: err.message,
-        solved: false,
-      })
+      return res.status(status).json(practiceFailureBody(err.message))
     }
   } catch (err) {
     console.error('[execute debug]', {
@@ -116,6 +109,18 @@ export const executeQuestion = async (req, res, next) => {
   }
 }
 
+export function practiceFailureBody(message) {
+  return {
+    correct: false,
+    columns: [],
+    rows: [],
+    rowCount: 0,
+    error: message,
+    message,
+    solved: false,
+  }
+}
+
 export async function saveGradedAttempt({
   userId,
   problem,
@@ -123,6 +128,7 @@ export async function saveGradedAttempt({
   correct,
   hintsUsed,
   executed,
+  expectedRows,
   saveAttempt = recordAttempt,
   saveProgress = recordTopicProgress,
 }) {
@@ -149,6 +155,9 @@ export async function saveGradedAttempt({
     attemptId: attempt.id,
     progress,
     solved: Boolean(correct),
+    ...(expectedRows !== undefined
+      ? { expectedRows: normalizeExpectedResult(expectedRows) }
+      : {}),
   }
 }
 
@@ -213,17 +222,46 @@ export function toLearnerQuestion(problem, topic, hints, solved) {
   }
 }
 
+function normalizeExpectedResult(value) {
+  if (Array.isArray(value)) return value
+  if (typeof value === 'string' && value.trim()) {
+    try {
+      const parsed = JSON.parse(value)
+      return Array.isArray(parsed) ? parsed : []
+    } catch {
+      return []
+    }
+  }
+  return []
+}
+
 function normalizeHints(value) {
-  if (!Array.isArray(value)) {
+  let hints = value
+  if (typeof hints === 'string' && hints.trim()) {
+    try {
+      hints = JSON.parse(hints)
+    } catch {
+      return []
+    }
+  }
+  if (!Array.isArray(hints)) {
     return []
   }
 
-  return value
-    .filter((hint) => hint && typeof hint.text === 'string' && hint.text.trim() !== '')
-    .map((hint, index) => ({
-      level: typeof hint.level === 'number' ? hint.level : index + 1,
-      text: hint.text.trim(),
-    }))
+  return hints
+    .map((hint, index) => {
+      if (typeof hint === 'string' && hint.trim()) {
+        return { level: index + 1, text: hint.trim() }
+      }
+      if (hint && typeof hint.text === 'string' && hint.text.trim() !== '') {
+        return {
+          level: typeof hint.level === 'number' ? hint.level : index + 1,
+          text: hint.text.trim(),
+        }
+      }
+      return null
+    })
+    .filter(Boolean)
 }
 
 function runnerStatus(message) {

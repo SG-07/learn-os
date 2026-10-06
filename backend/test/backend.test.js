@@ -6,13 +6,14 @@ import { getAnswer, getGuidance } from '../src/controllers/aiController.js'
 import supabase from '../src/config/supabase.js'
 import { takeNextHint } from '../src/services/attemptService.js'
 import { getQuestionsByTopic, getTopics } from '../src/controllers/topicsController.js'
-import { getQuestionById as getQuestionDetail, saveGradedAttempt, toLearnerQuestion } from '../src/controllers/questionsController.js'
+import { executeQuestion, getQuestionById as getQuestionDetail, practiceFailureBody, saveGradedAttempt, toLearnerQuestion } from '../src/controllers/questionsController.js'
 import { PROGRESS_WRITE_ATTEMPTS, recordTopicProgress } from '../src/services/progressService.js'
 import { hintRevealsAnswer, validateGeneratedProblem } from '../src/services/problemGenerationService.js'
 import { requiresOrderedResult, resultsMatch } from '../src/services/resultCompare.js'
 import {
   describeFixture,
   selectFixtureName,
+  schemaFromDataset,
   serializeFixture,
   validatePracticeSql,
   mapDatabaseError,
@@ -288,11 +289,95 @@ test('learner question payload hides the solution', () => {
   }, { title: 'SELECT basics', tier: 'beginner' }, threeHints, false)
 
   assert.equal(payload.correct_sql, undefined)
-  assert.equal(payload.expectedResult, undefined)
   assert.equal(payload.expected_result, undefined)
+  assert.equal(payload.expectedResult, undefined)
+  assert.equal(payload.expectedRows, undefined)
   assert.equal(payload.hintCount, 3)
   assert.equal(payload.schema.fixture, 'employees')
+  assert.equal(payload.schema.tables[0].name, 'employees')
   assert.equal(Array.isArray(payload.schema.tables), true)
+})
+
+test('question schema accepts a stored fixture object', () => {
+  const fromObject = schemaFromDataset(serializeFixture('employees'))
+  assert.equal(fromObject.fixture, 'employees')
+  assert.equal(fromObject.tables[0].columns[0].name, 'id')
+
+  const payload = toLearnerQuestion({
+    id: NIL_ID,
+    topic_id: NIL_ID,
+    prompt: 'List names.',
+    dataset_schema: serializeFixture('company'),
+    expected_result: '[{"name":"Alice"}]',
+  }, { title: 'Joins', tier: 'beginner' }, [
+    { level: 1, text: 'Look at the employees table.' },
+  ], false)
+
+  assert.equal(payload.schema.tables.some((table) => table.name === 'departments'), true)
+  assert.equal(payload.expectedResult, undefined)
+  assert.equal(payload.expected_result, undefined)
+  assert.equal(payload.correct_sql, undefined)
+})
+
+test('topic questions omit stored solutions', async () => {
+  const topicsRes = mockRes()
+  await getTopics({}, topicsRes, (err) => {
+    throw err
+  })
+  const res = mockRes()
+  await getQuestionsByTopic({ params: { topicId: topicsRes.body.topics[0].id } }, res, (err) => {
+    throw err
+  })
+
+  assert.equal(res.statusCode, 200)
+  for (const question of res.body.questions) {
+    assert.equal(question.correct_sql, undefined)
+    assert.equal(question.expected_result, undefined)
+    assert.equal(question.expectedResult, undefined)
+    assert.equal(question.expectedRows, undefined)
+  }
+})
+
+test('grading uses the stored expected rows and reveals them only after execution', () => {
+  const stored = [{ name: 'Ada' }]
+  assert.equal(resultsMatch([{ name: 'Ada' }], stored), true)
+  assert.equal(resultsMatch([{ name: 'Grace' }], stored), false)
+})
+
+test('a completed attempt returns expected rows without the saved SQL', async () => {
+  const stored = [{ name: 'Ada' }]
+  const body = await saveGradedAttempt(gradedInput({
+    correct: resultsMatch(GRADED_ROWS, stored),
+    expectedRows: stored,
+    saveAttempt: async () => ({ id: 'attempt-expected' }),
+    saveProgress: async () => ({ problemsSolved: 1, completed: true }),
+  }))
+
+  assert.equal(body.correct, true)
+  assert.deepEqual(body.expectedRows, stored)
+  assert.equal(body.correct_sql, undefined)
+  assert.equal(body.expected_result, undefined)
+  assert.equal(body.attemptId, 'attempt-expected')
+})
+
+test('rejected SQL and requests that do not execute omit expected rows', async () => {
+  const failure = practiceFailureBody('Forbidden statement type')
+  assert.equal(failure.expectedRows, undefined)
+  assert.equal(failure.expectedResult, undefined)
+  assert.equal(failure.correct_sql, undefined)
+  assert.equal(failure.solved, false)
+
+  const res = mockRes()
+  await executeQuestion({
+    params: { questionId: NIL_ID },
+    body: { sql: '   ' },
+    user: { id: NIL_ID },
+  }, res, (err) => {
+    throw err
+  })
+  assert.equal(res.statusCode, 400)
+  assert.equal(res.body.expectedRows, undefined)
+  assert.equal(res.body.correct_sql, undefined)
 })
 
 test('topic list returns learner fields', async () => {
