@@ -105,6 +105,13 @@ export const executeQuestion = async (req, res, next) => {
       })
     }
   } catch (err) {
+    console.error('[execute debug]', {
+      name: err?.name,
+      message: err?.message,
+      code: err?.code,
+      details: err?.details,
+      hint: err?.hint,
+    })
     next(err)
   }
 }

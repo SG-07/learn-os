@@ -137,6 +137,18 @@ function SqlAssistantPage() {
               </div>
             )}
 
+            {question && (
+              <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-950">
+                <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Current question</h2>
+                <p className="mt-1 whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">{question}</p>
+                {schema && (
+                  <pre className="mt-3 overflow-x-auto rounded bg-gray-100 p-2 text-xs text-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                    {schema}
+                  </pre>
+                )}
+              </div>
+            )}
+
             {mermaidSource && (
               <div className="mt-6">
                 <SchemaDiagram mermaidSource={mermaidSource} />

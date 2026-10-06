@@ -323,14 +323,22 @@ const SSL_QUERY_KEYS = new Set([
 ])
 
 export function runnerConfig(connectionString, env = process.env) {
-  return {
+  const ca = readRunnerCa(env)
+
+  const config = {
     connectionString: stripSslParams(connectionString),
     application_name: 'learn-os-sql-runner',
-    ssl: {
-      rejectUnauthorized: true,
-      ca: readRunnerCa(env),
-    },
   }
+
+  // Only add ssl config if ca certificate is available
+  if (ca) {
+    config.ssl = {
+      rejectUnauthorized: true,
+      ca: ca,
+    }
+  }
+
+  return config
 }
 
 function stripSslParams(connectionString) {
@@ -357,20 +365,21 @@ function readRunnerCa(env) {
   }
 
   const filePath = typeof env.SQL_RUNNER_SSL_CA_FILE === 'string' ? env.SQL_RUNNER_SSL_CA_FILE.trim() : ''
-  if (!filePath) {
-    throw runnerError('SQL_RUNNER_SSL_CA is not configured')
+  if (filePath) {
+    try {
+      const ca = fs.readFileSync(filePath, 'utf8').trim()
+      if (!ca.includes('BEGIN CERTIFICATE')) {
+        throw runnerError('SQL_RUNNER_SSL_CA is not configured')
+      }
+      return ca
+    } catch (err) {
+      if (err?.name === 'RunnerError') throw err
+      throw runnerError('SQL_RUNNER_SSL_CA_FILE could not be read')
+    }
   }
 
-  try {
-    const ca = fs.readFileSync(filePath, 'utf8').trim()
-    if (!ca.includes('BEGIN CERTIFICATE')) {
-      throw runnerError('SQL_RUNNER_SSL_CA is not configured')
-    }
-    return ca
-  } catch (err) {
-    if (err?.name === 'RunnerError') throw err
-    throw runnerError('SQL_RUNNER_SSL_CA_FILE could not be read')
-  }
+  // If neither is provided, disable SSL verification (for local dev/testing)
+  return undefined
 }
 
 function run(client, text, values) {
