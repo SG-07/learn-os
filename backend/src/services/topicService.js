@@ -24,6 +24,20 @@ export async function getTopicById(topicId) {
   return data
 }
 
+export async function countQuestionsByTopic() {
+  const { data, error } = await supabase
+    .from('problems')
+    .select('topic_id')
+
+  if (error) throw error
+
+  const counts = {}
+  for (const row of data ?? []) {
+    counts[row.topic_id] = (counts[row.topic_id] || 0) + 1
+  }
+  return counts
+}
+
 export async function listQuestionsByTopic(topicId) {
   const { data, error } = await supabase
     .from('problems')

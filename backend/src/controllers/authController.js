@@ -1,6 +1,6 @@
 // backend/controllers/authController.js
 
-import supabase from '../config/supabase.js'
+import supabase, { getPasswordAuthClient } from '../config/supabase.js'
 
 // POST /api/auth/signup
 export const signup = async (req, res, next) => {
@@ -33,7 +33,7 @@ export const login = async (req, res, next) => {
       return res.status(400).json({ error: 'Email and password are required' })
     }
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error } = await getPasswordAuthClient().auth.signInWithPassword({ email, password })
 
     if (error) return res.status(401).json({ error: error.message })
 
@@ -104,7 +104,7 @@ export const changePassword = async (req, res, next) => {
       return res.status(400).json({ error: 'currentPassword and newPassword are required' })
     }
 
-    const { error: verifyError } = await supabase.auth.signInWithPassword({
+    const { error: verifyError } = await getPasswordAuthClient().auth.signInWithPassword({
       email: req.user.email,
       password: currentPassword,
     })
