@@ -364,33 +364,14 @@ const SSL_QUERY_KEYS = new Set([
 ])
 
 export function runnerConfig(connectionString, env = process.env) {
-  const ca = readRunnerCa(env)
-
-  // Check if connection string requires SSL before we strip the params
-  const requiresSSL = connectionString.includes('sslmode=require')
-
-  const config = {
+  return {
     connectionString: stripSslParams(connectionString),
     application_name: 'learn-os-sql-runner',
-  }
-
-  // Case 1: CA certificate is provided - use strict verification
-  if (ca) {
-    config.ssl = {
+    ssl: {
       rejectUnauthorized: true,
-      ca: ca,
-    }
+      ca: readRunnerCa(env),
+    },
   }
-  // Case 2: Connection requires SSL but no CA
-  // Supabase/Render uses standard certs, so we can disable verification
-  // This is safe because the connection is to a trusted provider
-  else if (requiresSSL) {
-    config.ssl = {
-      rejectUnauthorized: false,
-    }
-  }
-
-  return config
 }
 
 function stripSslParams(connectionString) {
@@ -417,21 +398,20 @@ function readRunnerCa(env) {
   }
 
   const filePath = typeof env.SQL_RUNNER_SSL_CA_FILE === 'string' ? env.SQL_RUNNER_SSL_CA_FILE.trim() : ''
-  if (filePath) {
-    try {
-      const ca = fs.readFileSync(filePath, 'utf8').trim()
-      if (!ca.includes('BEGIN CERTIFICATE')) {
-        throw runnerError('SQL_RUNNER_SSL_CA is not configured')
-      }
-      return ca
-    } catch (err) {
-      if (err?.name === 'RunnerError') throw err
-      throw runnerError('SQL_RUNNER_SSL_CA_FILE could not be read')
-    }
+  if (!filePath) {
+    throw runnerError('SQL_RUNNER_SSL_CA is not configured')
   }
 
-  // If neither is provided, disable SSL verification (for local dev/testing)
-  return undefined
+  try {
+    const ca = fs.readFileSync(filePath, 'utf8').trim()
+    if (!ca.includes('BEGIN CERTIFICATE')) {
+      throw runnerError('SQL_RUNNER_SSL_CA is not configured')
+    }
+    return ca
+  } catch (err) {
+    if (err?.name === 'RunnerError') throw err
+    throw runnerError('SQL_RUNNER_SSL_CA_FILE could not be read')
+  }
 }
 
 function run(client, text, values) {
