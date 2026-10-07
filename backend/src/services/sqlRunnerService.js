@@ -303,6 +303,7 @@ export async function executePracticeQuery(sql, fixture) {
     }
 
     if (!opened) {
+      logSqlRunnerConnectFailure(err)
       throw runnerError('SQL runner connection failed')
     }
 
@@ -324,6 +325,32 @@ export async function executePracticeQuery(sql, fixture) {
       }
     }
   }
+}
+
+const CONNECTION_DIAGNOSTIC_FIELDS = ['name', 'code', 'message', 'errno', 'syscall', 'address', 'port']
+
+// Temporary diagnostic. Remove after the Render connection failure is identified.
+export function logSqlRunnerConnectFailure(err) {
+  const diagnostics = {}
+
+  for (const field of CONNECTION_DIAGNOSTIC_FIELDS) {
+    const value = err?.[field]
+    if (typeof value === 'string') {
+      diagnostics[field] = redactConnectionSecrets(value)
+    } else if (typeof value === 'number' || typeof value === 'boolean') {
+      diagnostics[field] = value
+    } else {
+      diagnostics[field] = null
+    }
+  }
+
+  console.error('SQL runner connect failed', diagnostics)
+}
+
+function redactConnectionSecrets(value) {
+  return value
+    .replace(/postgres(?:ql)?:\/\/\S+/gi, '[redacted]')
+    .replace(/([?&](?:password|user|username)=)[^&\s]+/gi, '$1[redacted]')
 }
 
 const SSL_QUERY_KEYS = new Set([
