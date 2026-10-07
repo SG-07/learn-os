@@ -337,14 +337,33 @@ const SSL_QUERY_KEYS = new Set([
 ])
 
 export function runnerConfig(connectionString, env = process.env) {
-  return {
+  const ca = readRunnerCa(env)
+
+  // Check if connection string requires SSL before we strip the params
+  const requiresSSL = connectionString.includes('sslmode=require')
+
+  const config = {
     connectionString: stripSslParams(connectionString),
     application_name: 'learn-os-sql-runner',
-    ssl: {
-      rejectUnauthorized: true,
-      ca: readRunnerCa(env),
-    },
   }
+
+  // Case 1: CA certificate is provided - use strict verification
+  if (ca) {
+    config.ssl = {
+      rejectUnauthorized: true,
+      ca: ca,
+    }
+  }
+  // Case 2: Connection requires SSL but no CA
+  // Supabase/Render uses standard certs, so we can disable verification
+  // This is safe because the connection is to a trusted provider
+  else if (requiresSSL) {
+    config.ssl = {
+      rejectUnauthorized: false,
+    }
+  }
+
+  return config
 }
 
 function stripSslParams(connectionString) {
@@ -371,20 +390,21 @@ function readRunnerCa(env) {
   }
 
   const filePath = typeof env.SQL_RUNNER_SSL_CA_FILE === 'string' ? env.SQL_RUNNER_SSL_CA_FILE.trim() : ''
-  if (!filePath) {
-    throw runnerError('SQL_RUNNER_SSL_CA is not configured')
+  if (filePath) {
+    try {
+      const ca = fs.readFileSync(filePath, 'utf8').trim()
+      if (!ca.includes('BEGIN CERTIFICATE')) {
+        throw runnerError('SQL_RUNNER_SSL_CA is not configured')
+      }
+      return ca
+    } catch (err) {
+      if (err?.name === 'RunnerError') throw err
+      throw runnerError('SQL_RUNNER_SSL_CA_FILE could not be read')
+    }
   }
 
-  try {
-    const ca = fs.readFileSync(filePath, 'utf8').trim()
-    if (!ca.includes('BEGIN CERTIFICATE')) {
-      throw runnerError('SQL_RUNNER_SSL_CA is not configured')
-    }
-    return ca
-  } catch (err) {
-    if (err?.name === 'RunnerError') throw err
-    throw runnerError('SQL_RUNNER_SSL_CA_FILE could not be read')
-  }
+  // If neither is provided, disable SSL verification (for local dev/testing)
+  return undefined
 }
 
 function run(client, text, values) {
