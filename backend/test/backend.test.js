@@ -20,6 +20,7 @@ import {
   MAX_RESULT_ROWS,
   STATEMENT_TIMEOUT_MS,
   runnerConfig,
+  logSqlRunnerConnectFailure,
 } from '../src/services/sqlRunnerService.js'
 
 const NIL_ID = '00000000-0000-4000-8000-000000000000'
@@ -1064,6 +1065,52 @@ test('a failed attempt insert does not update progress', async () => {
     /attempt insert failed/,
   )
   assert.equal(progressCalls, 0)
+})
+
+test('connect failure diagnostics log only safe error fields', () => {
+  const secretUrl = 'postgresql://diag_user:diag_password@db.example.test:5432/postgres?sslmode=require'
+  const err = Object.assign(new Error(`connect failed ${secretUrl}`), {
+    code: 'ECONNREFUSED',
+    errno: -111,
+    syscall: 'connect',
+    address: '203.0.113.10',
+    port: 5432,
+  })
+  err.connectionString = secretUrl
+  err.password = 'diag_password'
+  err.user = 'diag_user'
+  err.ca = '-----BEGIN CERTIFICATE-----\nDIAGNOSTIC-CA\n-----END CERTIFICATE-----'
+
+  const logs = []
+  const errorMock = mock.method(console, 'error', (...args) => {
+    logs.push(args)
+  })
+
+  try {
+    logSqlRunnerConnectFailure(err)
+  } finally {
+    errorMock.mock.restore()
+  }
+
+  assert.equal(logs.length, 1)
+  assert.equal(logs[0][0], 'SQL runner connect failed')
+  assert.deepEqual(logs[0][1], {
+    name: 'Error',
+    code: 'ECONNREFUSED',
+    message: 'connect failed [redacted]',
+    errno: -111,
+    syscall: 'connect',
+    address: '203.0.113.10',
+    port: 5432,
+  })
+
+  const serialized = JSON.stringify(logs)
+  assert.equal(serialized.includes(secretUrl), false)
+  assert.equal(serialized.includes('diag_password'), false)
+  assert.equal(serialized.includes('diag_user'), false)
+  assert.equal(serialized.includes('BEGIN CERTIFICATE'), false)
+  assert.equal(serialized.includes('DIAGNOSTIC-CA'), false)
+  assert.equal(serialized.includes('sslmode'), false)
 })
 
 test('an incorrect attempt does not update progress', async () => {
