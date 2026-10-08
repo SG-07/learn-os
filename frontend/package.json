@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "validate:difficulty": "node scripts/validateQuestionDifficulty.mjs"
   },
   "dependencies": {
     "@codemirror/lang-sql": "^6.10.0",

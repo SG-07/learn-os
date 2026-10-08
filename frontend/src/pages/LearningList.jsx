@@ -37,8 +37,16 @@ function LearningList() {
     enabled: !isTopicPage || !!topicId,
   });
 
+  const topicsLookup = useQuery({
+    queryKey: ["topics"],
+    queryFn: getTopics,
+    enabled: isTopicPage,
+  });
+
   const rawItems = (isTopicPage ? data?.questions : data?.topics) ?? [];
-  const topicDetails = isTopicPage ? data?.topic : null;
+  const topicName =
+    topicsLookup.data?.topics?.find((topic) => topic.id === topicId)?.name || "";
+  const showTopicSkeleton = isTopicPage && !topicName && !isError && (isPending || topicsLookup.isPending);
 
   const filteredItems = rawItems.filter((item) => {
     const nameMatch = (item.name || item.title || "").toLowerCase().includes(searchTerm.toLowerCase());
@@ -74,10 +82,22 @@ function LearningList() {
       <div className="mx-auto max-w-7xl space-y-8">
         {/* Navigation & Breadcrumb */}
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <BackButton
-            to={isTopicPage ? "/topics" : "/dashboard"}
-            label={isTopicPage ? "All Topics" : "Dashboard"}
-          />
+          <div className="flex flex-wrap items-center gap-2">
+            <BackButton
+              to={isTopicPage ? "/topics" : "/dashboard"}
+              label={isTopicPage ? "All Topics" : "Dashboard"}
+            />
+            {isTopicPage && topicName && (
+              <>
+                <span className="text-xs text-slate-300 dark:text-slate-600" aria-hidden="true">
+                  /
+                </span>
+                <span className="text-xs font-semibold text-slate-900 dark:text-white">
+                  {topicName}
+                </span>
+              </>
+            )}
+          </div>
 
           <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
             <Layers className="h-3.5 w-3.5 text-indigo-500" />
@@ -96,16 +116,34 @@ function LearningList() {
                 {isTopicPage ? "Topic Practice" : "Course Curriculum"}
               </p>
             </div>
-            <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-              {isTopicPage
-                ? topicDetails?.name || "Practice Questions"
-                : "Explore SQL Topics"}
-            </h1>
-            <p className="mt-1.5 text-sm text-slate-600 dark:text-slate-400">
-              {isTopicPage
-                ? topicDetails?.description || "Select a problem below to solve interactively in the workspace."
-                : "Master relational databases step-by-step with structured modules and guided exercises."}
-            </p>
+            {isTopicPage ? (
+              <>
+                <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+                  {showTopicSkeleton ? (
+                    <span className="inline-block h-8 w-48 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-800" />
+                  ) : (
+                    topicName || "Practice Questions"
+                  )}
+                </h1>
+                {topicName && (
+                  <p className="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-200">
+                    Practice Questions
+                  </p>
+                )}
+                <p className="mt-1.5 text-sm text-slate-600 dark:text-slate-400">
+                  Select a problem below to solve interactively in the workspace.
+                </p>
+              </>
+            ) : (
+              <>
+                <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+                  Explore SQL Topics
+                </h1>
+                <p className="mt-1.5 text-sm text-slate-600 dark:text-slate-400">
+                  Master relational databases step-by-step with structured modules and guided exercises.
+                </p>
+              </>
+            )}
           </div>
 
           {/* Search Box */}
