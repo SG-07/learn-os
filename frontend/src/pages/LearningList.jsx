@@ -20,6 +20,7 @@ import { getTopics } from "../api/topics";
 import { getQuestionsByTopic } from "../api/questions";
 import BackButton from "../components/common/BackButton";
 import CardSkeleton from "../components/common/CardSkeleton";
+import { questionDifficulty } from "../data/questionDifficulty";
 
 function LearningList() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -55,11 +56,18 @@ function LearningList() {
   });
 
   const getDifficultyBadge = (difficulty) => {
-    const d = (difficulty || "Medium").toLowerCase();
+    const d = String(difficulty || "").toLowerCase();
     if (d === "easy") {
       return (
         <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
           Easy
+        </span>
+      );
+    }
+    if (d === "medium") {
+      return (
+        <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">
+          Medium
         </span>
       );
     }
@@ -71,8 +79,8 @@ function LearningList() {
       );
     }
     return (
-      <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">
-        Medium
+      <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+        Unknown
       </span>
     );
   };
@@ -226,7 +234,7 @@ function LearningList() {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        {isTopicPage && item.difficulty && getDifficultyBadge(item.difficulty)}
+                        {isTopicPage && getDifficultyBadge(questionDifficulty(item))}
                         {isSolved && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
                             <CheckCircle2 className="h-3 w-3" />
@@ -263,4 +271,4 @@ function LearningList() {
   );
 }
 
-export default LearningList;
+export default LearningList;
