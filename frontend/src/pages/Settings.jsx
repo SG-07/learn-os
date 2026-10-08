@@ -1,8 +1,10 @@
 // frontend/src/pages/Settings.jsx
 
 import { useState } from "react";
+import { KeyRound, Lock, Mail, Eye, EyeOff, CheckCircle2, AlertCircle, Shield } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { changePassword, adminChangePassword } from "../api/auth";
+import BackButton from "../components/common/BackButton";
 
 function Settings() {
   const { user } = useAuth();
@@ -21,6 +23,10 @@ function Settings() {
     newPassword: "",
     confirmPassword: "",
   });
+
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
@@ -45,31 +51,30 @@ function Settings() {
     e.preventDefault();
     setMessage({ type: "", text: "" });
 
-    // Validation
     if (!adminForm.email) {
-      setMessage({ type: "error", text: "Email is required" });
+      setMessage({ type: "error", text: "Target student/user email is required." });
       return;
     }
 
     if (!adminForm.newPassword) {
-      setMessage({ type: "error", text: "New password is required" });
+      setMessage({ type: "error", text: "New password is required." });
       return;
     }
 
     if (adminForm.newPassword.length < 6) {
-      setMessage({ type: "error", text: "Password must be at least 6 characters" });
+      setMessage({ type: "error", text: "Password must be at least 6 characters." });
       return;
     }
 
     if (adminForm.newPassword !== adminForm.confirmPassword) {
-      setMessage({ type: "error", text: "Passwords do not match" });
+      setMessage({ type: "error", text: "Passwords do not match." });
       return;
     }
 
     try {
       setLoading(true);
       await adminChangePassword(adminForm.email, adminForm.newPassword);
-      setMessage({ type: "success", text: "User password updated successfully" });
+      setMessage({ type: "success", text: "User password updated successfully!" });
       setAdminForm({
         email: "",
         newPassword: "",
@@ -78,7 +83,7 @@ function Settings() {
     } catch (error) {
       setMessage({
         type: "error",
-        text: error?.message || "Failed to update password",
+        text: error?.message || "Failed to update user password.",
       });
     } finally {
       setLoading(false);
@@ -89,31 +94,30 @@ function Settings() {
     e.preventDefault();
     setMessage({ type: "", text: "" });
 
-    // Validation
     if (!userForm.currentPassword) {
-      setMessage({ type: "error", text: "Current password is required" });
+      setMessage({ type: "error", text: "Current password is required." });
       return;
     }
 
     if (!userForm.newPassword) {
-      setMessage({ type: "error", text: "New password is required" });
+      setMessage({ type: "error", text: "New password is required." });
       return;
     }
 
     if (userForm.newPassword.length < 6) {
-      setMessage({ type: "error", text: "Password must be at least 6 characters" });
+      setMessage({ type: "error", text: "Password must be at least 6 characters." });
       return;
     }
 
     if (userForm.newPassword !== userForm.confirmPassword) {
-      setMessage({ type: "error", text: "Passwords do not match" });
+      setMessage({ type: "error", text: "New password and confirmation do not match." });
       return;
     }
 
     if (userForm.currentPassword === userForm.newPassword) {
       setMessage({
         type: "error",
-        text: "New password must be different from current password",
+        text: "New password must be different from current password.",
       });
       return;
     }
@@ -121,7 +125,7 @@ function Settings() {
     try {
       setLoading(true);
       await changePassword(userForm.currentPassword, userForm.newPassword);
-      setMessage({ type: "success", text: "Password changed successfully" });
+      setMessage({ type: "success", text: "Password changed successfully!" });
       setUserForm({
         currentPassword: "",
         newPassword: "",
@@ -130,342 +134,197 @@ function Settings() {
     } catch (error) {
       setMessage({
         type: "error",
-        text: error?.message || "Failed to change password",
+        text: error?.message || "Failed to change password. Please verify current password.",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const isAdminOwnPasswordFormValid =
-    userForm.currentPassword.trim() &&
-    userForm.newPassword.trim() &&
-    userForm.confirmPassword.trim();
-
-  const isAdminOtherPasswordFormValid =
-    adminForm.email.trim() &&
-    adminForm.newPassword.trim() &&
-    adminForm.confirmPassword.trim();
-
-  const isUserFormValid =
-    userForm.currentPassword.trim() &&
-    userForm.newPassword.trim() &&
-    userForm.confirmPassword.trim();
-
   return (
-    <div className="min-h-full bg-gray-100 p-4 dark:bg-gray-950 sm:p-8">
-      <div className="mx-auto max-w-2xl">
-        <h1 className="text-[40px]! font-bold text-gray-900 dark:text-white">
-          Change Password
-        </h1>
+    <div className="min-h-full bg-slate-50/50 p-4 sm:p-8 dark:bg-slate-950">
+      <div className="mx-auto max-w-2xl space-y-6">
+        <div>
+          <BackButton to="/dashboard" label="Dashboard" />
+        </div>
 
-        {/* Password Change Section */}
-        <div className="mt-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-
-          {isAdmin && (
-            <div className="mt-6 mb-6 space-y-4 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                What would you like to do?
+        <div className="overflow-hidden rounded-3xl border border-slate-200/90 bg-white p-6 shadow-xl shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-900 sm:p-8">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400">
+              <KeyRound className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-slate-900 dark:text-white">
+                Security & Password
+              </h1>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Update your account password or manage security credentials.
               </p>
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <label className="flex items-center gap-3">
-                  <input
-                    type="radio"
-                    name="adminMode"
-                    value="own"
-                    checked={adminMode === "own"}
-                    onChange={(e) => {
-                      setAdminMode(e.target.value);
-                      setMessage({ type: "", text: "" });
-                    }}
-                    className="h-4 w-4 cursor-pointer"
-                  />
-                  <span className="cursor-pointer text-sm text-gray-700 dark:text-gray-300">
-                    Reset my password
-                  </span>
-                </label>
-                <label className="flex items-center gap-3">
-                  <input
-                    type="radio"
-                    name="adminMode"
-                    value="other"
-                    checked={adminMode === "other"}
-                    onChange={(e) => {
-                      setAdminMode(e.target.value);
-                      setMessage({ type: "", text: "" });
-                    }}
-                    className="h-4 w-4 cursor-pointer"
-                  />
-                  <span className="cursor-pointer text-sm text-gray-700 dark:text-gray-300">
-                    Reset another user's password
-                  </span>
-                </label>
-              </div>
+            </div>
+          </div>
+
+          {/* Admin Mode Switcher */}
+          {isAdmin && (
+            <div className="mt-6 flex rounded-2xl border border-slate-200/80 bg-slate-100/80 p-1 dark:border-slate-800 dark:bg-slate-800/80">
+              <button
+                type="button"
+                onClick={() => {
+                  setAdminMode("own");
+                  setMessage({ type: "", text: "" });
+                }}
+                className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all ${
+                  adminMode === "own"
+                    ? "bg-white text-indigo-600 shadow-sm dark:bg-slate-900 dark:text-indigo-400"
+                    : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+                }`}
+              >
+                Change My Password
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAdminMode("other");
+                  setMessage({ type: "", text: "" });
+                }}
+                className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all ${
+                  adminMode === "other"
+                    ? "bg-white text-indigo-600 shadow-sm dark:bg-slate-900 dark:text-indigo-400"
+                    : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+                }`}
+              >
+                Reset Student / User Password
+              </button>
             </div>
           )}
 
-          {isAdmin && adminMode === "own" ? (
-            <form onSubmit={handleUserSubmit} className="mt-6 space-y-5">
-              {/* Message Alert */}
-              {message.text && (
-                <div
-                  className={`rounded-lg p-4 text-sm font-medium ${
-                    message.type === "success"
-                      ? "bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400"
-                      : "bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400"
-                  }`}
-                >
-                  {message.text}
-                </div>
+          {/* Status Message */}
+          {message.text && (
+            <div
+              className={`mt-6 flex items-start gap-2.5 rounded-2xl border p-4 text-xs font-semibold ${
+                message.type === "success"
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-950 dark:bg-emerald-950/40 dark:text-emerald-300"
+                  : "border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-950 dark:bg-rose-950/40 dark:text-rose-300"
+              }`}
+            >
+              {message.type === "success" ? (
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              ) : (
+                <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400" />
               )}
-
-              {/* Current Password */}
-              <div>
-                <label
-                  htmlFor="currentPassword"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  Current Password
-                </label>
-                <input
-                  type="password"
-                  id="currentPassword"
-                  name="currentPassword"
-                  value={userForm.currentPassword}
-                  onChange={handleUserFormChange}
-                  required
-                  className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder-gray-500 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
-                  placeholder="Enter your current password"
-                />
-              </div>
-
-              {/* New Password */}
-              <div>
-                <label
-                  htmlFor="newPassword"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  New Password
-                </label>
-                <input
-                  type="password"
-                  id="newPassword"
-                  name="newPassword"
-                  value={userForm.newPassword}
-                  onChange={handleUserFormChange}
-                  required
-                  className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder-gray-500 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
-                  placeholder="Enter your new password"
-                />
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Minimum 6 characters
-                </p>
-              </div>
-
-              {/* Confirm Password */}
-              <div>
-                <label
-                  htmlFor="confirmPassword"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  Confirm New Password
-                </label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  value={userForm.confirmPassword}
-                  onChange={handleUserFormChange}
-                  required
-                  className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder-gray-500 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
-                  placeholder="Confirm your new password"
-                />
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading || !isAdminOwnPasswordFormValid}
-                className="w-full rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-white dark:text-black dark:hover:bg-gray-200 dark:focus:ring-offset-gray-950"
-              >
-                {loading ? "Updating..." : "Change Password"}
-              </button>
-            </form>
-          ) : isAdmin && adminMode === "other" ? (
-            <form onSubmit={handleAdminSubmit} className="mt-6 space-y-5">
-              {/* Message Alert */}
-              {message.text && (
-                <div
-                  className={`rounded-lg p-4 text-sm font-medium ${
-                    message.type === "success"
-                      ? "bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400"
-                      : "bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400"
-                  }`}
-                >
-                  {message.text}
-                </div>
-              )}
-
-              {/* Email */}
-              <div>
-                <label
-                  htmlFor="adminEmail"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  User Email
-                </label>
-                <input
-                  type="email"
-                  id="adminEmail"
-                  name="email"
-                  value={adminForm.email}
-                  onChange={handleAdminFormChange}
-                  required
-                  className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder-gray-500 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
-                  placeholder="Enter user email"
-                />
-              </div>
-
-              {/* New Password */}
-              <div>
-                <label
-                  htmlFor="adminNewPassword"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  New Password
-                </label>
-                <input
-                  type="password"
-                  id="adminNewPassword"
-                  name="newPassword"
-                  value={adminForm.newPassword}
-                  onChange={handleAdminFormChange}
-                  required
-                  className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder-gray-500 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
-                  placeholder="Enter new password"
-                />
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Minimum 6 characters
-                </p>
-              </div>
-
-              {/* Confirm Password */}
-              <div>
-                <label
-                  htmlFor="adminConfirmPassword"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  Confirm New Password
-                </label>
-                <input
-                  type="password"
-                  id="adminConfirmPassword"
-                  name="confirmPassword"
-                  value={adminForm.confirmPassword}
-                  onChange={handleAdminFormChange}
-                  required
-                  className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder-gray-500 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
-                  placeholder="Confirm new password"
-                />
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading || !isAdminOtherPasswordFormValid}
-                className="w-full rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-white dark:text-black dark:hover:bg-gray-200 dark:focus:ring-offset-gray-950"
-              >
-                {loading ? "Updating..." : "Update Password"}
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleUserSubmit} className="mt-6 space-y-5">
-              {/* Message Alert */}
-              {message.text && (
-                <div
-                  className={`rounded-lg p-4 text-sm font-medium ${
-                    message.type === "success"
-                      ? "bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400"
-                      : "bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400"
-                  }`}
-                >
-                  {message.text}
-                </div>
-              )}
-
-              {/* Current Password */}
-              <div>
-                <label
-                  htmlFor="currentPassword"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  Current Password
-                </label>
-                <input
-                  type="password"
-                  id="currentPassword"
-                  name="currentPassword"
-                  value={userForm.currentPassword}
-                  onChange={handleUserFormChange}
-                  required
-                  className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder-gray-500 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
-                  placeholder="Enter your current password"
-                />
-              </div>
-
-              {/* New Password */}
-              <div>
-                <label
-                  htmlFor="userNewPassword"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  New Password
-                </label>
-                <input
-                  type="password"
-                  id="userNewPassword"
-                  name="newPassword"
-                  value={userForm.newPassword}
-                  onChange={handleUserFormChange}
-                  required
-                  className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder-gray-500 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
-                  placeholder="Enter your new password"
-                />
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Minimum 6 characters
-                </p>
-              </div>
-
-              {/* Confirm Password */}
-              <div>
-                <label
-                  htmlFor="userConfirmPassword"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  Confirm New Password
-                </label>
-                <input
-                  type="password"
-                  id="userConfirmPassword"
-                  name="confirmPassword"
-                  value={userForm.confirmPassword}
-                  onChange={handleUserFormChange}
-                  required
-                  className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder-gray-500 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
-                  placeholder="Confirm your new password"
-                />
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading || !isUserFormValid}
-                className="w-full rounded-lg bg-black px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-white dark:text-black dark:hover:bg-gray-200 dark:focus:ring-offset-gray-950"
-              >
-                {loading ? "Updating..." : "Change Password"}
-              </button>
-            </form>
+              <span>{message.text}</span>
+            </div>
           )}
+
+          {/* Form */}
+          <form
+            onSubmit={isAdmin && adminMode === "other" ? handleAdminSubmit : handleUserSubmit}
+            className="mt-6 space-y-4"
+          >
+            {isAdmin && adminMode === "other" ? (
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Target User Email
+                </label>
+                <div className="relative">
+                  <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="email"
+                    name="email"
+                    value={adminForm.email}
+                    onChange={handleAdminFormChange}
+                    required
+                    className="w-full rounded-2xl border border-slate-200/90 bg-white py-2.5 pl-10 pr-4 text-xs text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
+                    placeholder="user@example.com"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Current Password
+                </label>
+                <div className="relative">
+                  <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type={showCurrentPassword ? "text" : "password"}
+                    name="currentPassword"
+                    value={userForm.currentPassword}
+                    onChange={handleUserFormChange}
+                    required
+                    className="w-full rounded-2xl border border-slate-200/90 bg-white py-2.5 pl-10 pr-10 text-xs text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword((prev) => !prev)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  >
+                    {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* New Password */}
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                New Password (minimum 6 characters)
+              </label>
+              <div className="relative">
+                <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  type={showNewPassword ? "text" : "password"}
+                  name="newPassword"
+                  value={isAdmin && adminMode === "other" ? adminForm.newPassword : userForm.newPassword}
+                  onChange={isAdmin && adminMode === "other" ? handleAdminFormChange : handleUserFormChange}
+                  required
+                  className="w-full rounded-2xl border border-slate-200/90 bg-white py-2.5 pl-10 pr-10 text-xs text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                >
+                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Confirm New Password */}
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                Confirm New Password
+              </label>
+              <div className="relative">
+                <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  value={isAdmin && adminMode === "other" ? adminForm.confirmPassword : userForm.confirmPassword}
+                  onChange={isAdmin && adminMode === "other" ? handleAdminFormChange : handleUserFormChange}
+                  required
+                  className="w-full rounded-2xl border border-slate-200/90 bg-white py-2.5 pl-10 pr-10 text-xs text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                >
+                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-700 py-2.5 text-xs font-bold text-white shadow-md shadow-indigo-500/20 transition hover:from-indigo-500 hover:to-indigo-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <span>{loading ? "Updating..." : "Update Password"}</span>
+            </button>
+          </form>
         </div>
       </div>
     </div>
@@ -473,3 +332,4 @@ function Settings() {
 }
 
 export default Settings;
+
