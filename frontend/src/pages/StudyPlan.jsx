@@ -256,7 +256,7 @@ function TopicSection({ topic, number, solvedCount, expanded, onToggle }) {
 
 function QuestionRow({ question }) {
   const title = question.prompt || question.title || question.name || "Practice question";
-  const difficulty = questionDifficulty(question);
+  const difficulty = questionDifficulty(question) || "unknown";
 
   return (
     <li className="flex items-center gap-3 py-3">
@@ -266,7 +266,7 @@ function QuestionRow({ question }) {
         <Circle className="h-4 w-4 shrink-0 text-slate-300 dark:text-slate-600" aria-label="Not solved" />
       )}
       <p className="min-w-0 flex-1 text-sm text-slate-800 dark:text-slate-200">{title}</p>
-      {difficulty && <DifficultyBadge difficulty={difficulty} />}
+      <DifficultyBadge difficulty={difficulty} />
       <Link
         to="/questions/$questionId"
         params={{ questionId: question.id }}
@@ -283,6 +283,7 @@ function DifficultyBadge({ difficulty }) {
     easy: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300",
     medium: "bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300",
     hard: "bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300",
+    unknown: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300",
   };
   const label = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
 
