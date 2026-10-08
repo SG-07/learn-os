@@ -1,8 +1,8 @@
 // frontend/src/routes/_authenticated/topics/index.jsx
 
 import { createFileRoute } from "@tanstack/react-router";
-import LearningList from "../../../pages/LearningList";
+import StudyPlan from "../../../pages/StudyPlan";
 
 export const Route = createFileRoute("/_authenticated/topics/")({
-  component: LearningList,
+  component: StudyPlan,
 });
