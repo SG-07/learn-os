@@ -1,6 +1,7 @@
-// frontend/src/components/Modal.jsx
+// frontend/src/components/common/Modal.jsx
 
 import { useEffect } from "react";
+import { X } from "lucide-react";
 
 function Modal({ isOpen, onClose, title, children }) {
   useEffect(() => {
@@ -13,7 +14,6 @@ function Modal({ isOpen, onClose, title, children }) {
     };
 
     document.addEventListener("keydown", handleEscape);
-
     return () => {
       document.removeEventListener("keydown", handleEscape);
     };
@@ -23,17 +23,17 @@ function Modal({ isOpen, onClose, title, children }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm animate-in fade-in duration-200"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
     >
-      <div className="w-full max-w-2xl rounded-xl bg-white shadow-xl dark:bg-gray-900">
+      <div className="w-full max-w-2xl rounded-3xl border border-slate-200/90 bg-white shadow-2xl shadow-slate-900/20 animate-in zoom-in-95 duration-200 dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/50">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-700">
+        <div className="flex items-center justify-between border-b border-slate-200/80 px-6 py-4.5 dark:border-slate-800">
           <h2
             id="modal-title"
-            className="text-lg font-semibold text-gray-900 dark:text-white"
+            className="text-base font-bold text-slate-900 dark:text-white sm:text-lg"
           >
             {title}
           </h2>
@@ -42,27 +42,14 @@ function Modal({ isOpen, onClose, title, children }) {
             type="button"
             onClick={onClose}
             aria-label="Close modal"
-            className="rounded-md p-1 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white"
+            className="flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              className="h-5 w-5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18 18 6M6 6l12 12"
-              />
-            </svg>
+            <X className="h-4 w-4" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="max-h-[75vh] overflow-y-auto p-5">
+        <div className="max-h-[75vh] overflow-y-auto p-6">
           {children}
         </div>
       </div>
@@ -71,3 +58,4 @@ function Modal({ isOpen, onClose, title, children }) {
 }
 
 export default Modal;
+

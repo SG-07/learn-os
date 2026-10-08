@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import mermaid from "mermaid";
+import { Database, AlertCircle } from "lucide-react";
 
 let mermaidInitialized = false;
 
@@ -13,7 +14,11 @@ function SchemaDiagram({ mermaidSource }) {
     if (!mermaidSource) return;
 
     if (!mermaidInitialized) {
-      mermaid.initialize({ startOnLoad: false, theme: "neutral" });
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: "neutral",
+        fontFamily: "Plus Jakarta Sans, sans-serif",
+      });
       mermaidInitialized = true;
     }
 
@@ -29,7 +34,7 @@ function SchemaDiagram({ mermaidSource }) {
         }
       })
       .catch(() => {
-        if (!cancelled) setError("Could not render schema diagram.");
+        if (!cancelled) setError("Could not render ER diagram from schema.");
       });
 
     return () => {
@@ -40,17 +45,27 @@ function SchemaDiagram({ mermaidSource }) {
   if (!mermaidSource) return null;
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-      <h3 className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
-        Schema Diagram
-      </h3>
-      {error ? (
-        <p className="text-sm text-red-500">{error}</p>
-      ) : (
-        <div ref={containerRef} className="overflow-x-auto" />
-      )}
+    <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50/70 px-4 py-2 dark:border-slate-800 dark:bg-slate-800/50">
+        <Database className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+        <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200">
+          Visual Relational ER Diagram
+        </h3>
+      </div>
+
+      <div className="p-4">
+        {error ? (
+          <div className="flex items-center gap-2 text-xs text-rose-500">
+            <AlertCircle className="h-4 w-4" />
+            <span>{error}</span>
+          </div>
+        ) : (
+          <div ref={containerRef} className="overflow-x-auto flex justify-center py-2" />
+        )}
+      </div>
     </div>
   );
 }
 
 export default SchemaDiagram;
+
