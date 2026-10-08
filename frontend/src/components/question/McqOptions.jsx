@@ -1,6 +1,7 @@
 // frontend/src/components/question/McqOptions.jsx
 
 import { useState } from "react";
+import { CheckCircle2, Circle } from "lucide-react";
 
 function McqOptions({
   options = [],
@@ -11,38 +12,37 @@ function McqOptions({
 
   const handleSubmit = () => {
     if (!selectedOption || disabled) return;
-
     onSubmit(selectedOption);
   };
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-white dark:bg-gray-900">
+    <div className="flex h-full flex-col overflow-hidden bg-white dark:bg-slate-900">
       {/* Header */}
-      <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+      <div className="flex shrink-0 items-center justify-between border-b border-slate-200/80 bg-slate-50/70 px-4 py-2.5 dark:border-slate-800 dark:bg-slate-900/70">
         <div>
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
-            Choose your answer
+          <h2 className="text-xs font-bold text-slate-900 dark:text-white">
+            Multiple Choice Challenge
           </h2>
-
-          <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-            Select one option and submit your answer.
+          <p className="text-[11px] text-slate-500 dark:text-slate-400">
+            Select the best option and submit your response.
           </p>
         </div>
 
-        {/* Submit */}
+        {/* Submit Button */}
         <button
           type="button"
           onClick={handleSubmit}
           disabled={!selectedOption || disabled}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm shadow-indigo-500/20 transition hover:from-indigo-500 hover:to-indigo-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Submit
+          <CheckCircle2 className="h-3.5 w-3.5" />
+          <span>Submit Answer</span>
         </button>
       </div>
 
       {/* Options */}
-      <div className="min-h-0 flex-1 overflow-y-auto p-4">
-        <div className="space-y-2">
+      <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
+        <div className="space-y-3">
           {options.map((option) => {
             const isSelected = selectedOption === option.id;
 
@@ -52,10 +52,10 @@ function McqOptions({
                 type="button"
                 disabled={disabled}
                 onClick={() => setSelectedOption(option.id)}
-                className={`flex w-full items-center gap-3 rounded-lg border px-4 py-2.5 text-left transition ${
+                className={`flex w-full items-start gap-3.5 rounded-2xl border p-4 text-left transition-all ${
                   isSelected
-                    ? "border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950/30"
-                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:bg-gray-800"
+                    ? "border-indigo-500 bg-indigo-50/80 shadow-md shadow-indigo-500/10 dark:border-indigo-500 dark:bg-indigo-950/40"
+                    : "border-slate-200/80 bg-white hover:border-slate-300 hover:bg-slate-50/70 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700 dark:hover:bg-slate-800/50"
                 } ${
                   disabled
                     ? "cursor-not-allowed opacity-60"
@@ -63,28 +63,23 @@ function McqOptions({
                 }`}
               >
                 {/* Radio indicator */}
-                <span
-                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
-                    isSelected
-                      ? "border-blue-600 dark:border-blue-400"
-                      : "border-gray-400 dark:border-gray-500"
-                  }`}
-                >
-                  {isSelected && (
-                    <span className="h-2 w-2 rounded-full bg-blue-600 dark:bg-blue-400" />
+                <span className="mt-0.5 shrink-0">
+                  {isSelected ? (
+                    <CheckCircle2 className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                  ) : (
+                    <Circle className="h-5 w-5 text-slate-400 dark:text-slate-600" />
                   )}
                 </span>
 
-                {/* Option label */}
-                <span className="flex min-w-0 gap-2">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {option.id.toUpperCase()}.
+                {/* Option label & text */}
+                <div className="min-w-0 space-y-0.5">
+                  <span className="text-xs font-bold text-slate-900 dark:text-white">
+                    Option {option.id.toUpperCase()}
                   </span>
-
-                  <span className="text-sm leading-5 text-gray-700 dark:text-gray-300">
+                  <p className="text-xs leading-relaxed text-slate-700 dark:text-slate-300">
                     {option.text}
-                  </span>
-                </span>
+                  </p>
+                </div>
               </button>
             );
           })}
@@ -95,4 +90,5 @@ function McqOptions({
 }
 
 export default McqOptions;
+
 
