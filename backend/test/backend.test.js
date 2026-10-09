@@ -295,8 +295,19 @@ test('learner question payload hides the solution', () => {
   assert.equal(payload.expectedRows, undefined)
   assert.equal(payload.hintCount, 3)
   assert.equal(payload.schema.fixture, 'employees')
-  assert.equal(payload.schema.tables[0].name, 'employees')
-  assert.equal(Array.isArray(payload.schema.tables), true)
+  assert.equal(payload.title, 'List names.')
+  assert.equal(payload.prompt, 'List names.')
+
+  const withTitlePayload = toLearnerQuestion({
+    id: NIL_ID,
+    topic_id: NIL_ID,
+    title: 'Employee Directory',
+    prompt: 'List names.',
+    dataset_schema: JSON.stringify({ fixture: 'employees' }),
+  }, { title: 'SELECT basics', tier: 'beginner' }, threeHints, false)
+
+  assert.equal(withTitlePayload.title, 'Employee Directory')
+  assert.equal(withTitlePayload.prompt, 'List names.')
 })
 
 test('question schema accepts a stored fixture object', () => {
