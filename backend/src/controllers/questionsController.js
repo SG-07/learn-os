@@ -213,7 +213,7 @@ export function toLearnerQuestion(problem, topic, hints, solved) {
     topicId: problem.topic_id,
     topicName: topic.title,
     difficulty: topic.tier,
-    title: problem.prompt,
+    title: problem.title || problem.prompt,
     prompt: problem.prompt,
     type: 'write_query',
     schema: schemaFromDataset(problem.dataset_schema),

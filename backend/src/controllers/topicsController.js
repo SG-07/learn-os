@@ -48,7 +48,7 @@ export const getQuestionsByTopic = async (req, res, next) => {
       questions: problems.map((problem) => ({
         id: problem.id,
         name: problem.prompt,
-        title: problem.prompt,
+        title: problem.title || problem.prompt,
         difficulty: topic.tier,
         topicId: problem.topic_id,
       })),
