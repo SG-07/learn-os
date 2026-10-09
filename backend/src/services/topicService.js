@@ -41,7 +41,7 @@ export async function countQuestionsByTopic() {
 export async function listQuestionsByTopic(topicId) {
   const { data, error } = await supabase
     .from('problems')
-    .select('id, topic_id, prompt')
+    .select('id, topic_id, title, prompt')
     .eq('topic_id', topicId)
 
   if (error) throw error
